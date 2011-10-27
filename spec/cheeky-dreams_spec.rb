@@ -36,10 +36,9 @@ describe Light do
     
     it "should be able to go any rgb as just numbers" do
       @driver.should_receive(:go).with([222, 111, 0])
-      @light.go 222, 111, 0
+      @light.go [222, 111, 0]
     end
   end
-
 end
 
 describe "RGB" do
