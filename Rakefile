@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "cheeky-dreams"
   gem.homepage = "http://github.com/simojenki/cheeky-dreams"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = "For controlling dream cheeky usb light"
+  gem.description = "For controlling dream cheeky usb light"
   gem.email = "simojenki@gmail.com"
   gem.authors = ["simon"]
   # dependencies defined in Gemfile
