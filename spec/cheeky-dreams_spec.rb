@@ -11,17 +11,17 @@ describe Light do
     end
     
     it "should go red" do
-      @driver.should_receive(:go).with(rgb(255,0,0))
+      @driver.should_receive(:go).with([255,0,0])
       @light.go :red
     end
     
     it "should go green" do
-      @driver.should_receive(:go).with(rgb(0,255,0))
+      @driver.should_receive(:go).with([0,255,0])
       @light.go :green
     end
     
     it "should go blue" do
-      @driver.should_receive(:go).with(rgb(0,0,255))
+      @driver.should_receive(:go).with([0,0,255])
       @light.go :blue
     end
     
@@ -30,9 +30,13 @@ describe Light do
     end
     
     it "should be able to go any rgb" do
-      @rgb = rgb(111, 222, 0)
-      @driver.should_receive(:go).with(@rgb)
-      @light.go @rgb
+      @driver.should_receive(:go).with([211, 222, 0])
+      @light.go rgb(211, 222, 0)
+    end
+    
+    it "should be able to go any rgb as just numbers" do
+      @driver.should_receive(:go).with([222, 111, 0])
+      @light.go 222, 111, 0
     end
   end
 

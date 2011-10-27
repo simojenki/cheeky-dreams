@@ -1,51 +1,66 @@
 module CheekyDreams
-  class Rgb
-    attr_reader :r, :g, :b
-    
-    def initialize r, g, b
-      @r, @g, @b = r, g, b
-      raise "Invalid rgb value #{r}, #{g}, #{b}" if [r, g, b].any? { |colour| colour < 0 || colour > 255 }
-    end
-    
-    def == other
-      return false unless other
-      r == other.r && g == other.g && b == other.b
-    end
-    
-    def to_s
-      "RGB:#{r},#{g},#{b}"
-    end
-  end
   
   def self.rgb r, g, b
-    Rgb.new r, g, b
+    [r, g, b]
   end
   def rgb r, g, b
-    RGB::rgb r, g, b
+    [r, g, b].each { |c| raise "Invalid rgb value #{r}, #{g}, #{b}" if c < 0 || c > 255}
+    CheekyDreams::rgb(r, g, b)
+  end
+  
+  def stdout_driver
+    Driver::Stdout.new
+  end
+  
+  def ansi_driver
+    Driver::Ansi.new
+  end
+
+  module Driver
+    class Stdout
+      def go *rgb
+        puts rgb
+      end
+    end
+    
+    class Ansi
+      def initialize
+        require 'rainbow'
+      end
+      def go *rgb
+        print "     ".background(rgb)
+        print "\r"
+      end
+    end
   end
 end
 
 class Light
   
-  include CheekyDreams::RGB
+  include CheekyDreams
   
   COLOURS = { 
-    :red => CheekyDreams::RGB::rgb(255, 0, 0),
-    :green => CheekyDreams::RGB::rgb(0, 255, 0),
-    :blue => CheekyDreams::RGB::rgb(0, 0, 255)
+    :red => CheekyDreams::rgb(255, 0, 0),
+    :green => CheekyDreams::rgb(0, 255, 0),
+    :blue => CheekyDreams::rgb(0, 0, 255)
   }
   
   def initialize driver
     @driver = driver
   end
   
-  def go colour
-    if colour.is_a? CheekyDreams::Rgb
+  def go *colour
+    colour = colour.flatten
+    if colour.length == 3
       @driver.go colour
-    elsif COLOURS.has_key? colour
-      @driver.go(COLOURS[colour])
+    elsif colour.length == 1
+      if COLOURS.has_key?(colour[0])
+        @driver.go(COLOURS[colour[0]])
+      else
+        raise "Unknown colour '#{colour[0]}'"
+      end
     else
-      raise "Unknown colour '#{colour}'"
+      raise "Im sorry dave, I'm afraid I can't do that. #{colour}"
     end
   end
 end
