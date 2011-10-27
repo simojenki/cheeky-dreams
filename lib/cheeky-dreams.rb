@@ -9,11 +9,21 @@ module CheekyDreams
   end
   
   def stdout_driver
-    Driver::Stdout.new
+    Class.new do
+      def go rgb
+        puts rgb
+      end
+    end.new
   end
   
   def ansi_driver
-    Driver::Ansi.new
+    require 'rainbow'
+    Class.new do
+      def go rgb
+        print "     ".background(rgb)
+        print "\r"
+      end
+    end.new
   end
 
   module Driver
