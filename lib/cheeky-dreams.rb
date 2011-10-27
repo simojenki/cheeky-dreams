@@ -1,4 +1,5 @@
 require 'thread'
+require 'flt'
 
 module CheekyDreams
 
@@ -9,11 +10,29 @@ module CheekyDreams
   def rgb r, g, b
     CheekyDreams::rgb(r, g, b)
   end
+  
+  def self.rgb_between a, b, ratio
+    [
+      position_between(a[0], b[0], ratio),
+      position_between(a[1], b[1], ratio),
+      position_between(a[2], b[2], ratio),
+      ]
+  end
+  
+  def self.position_between a, b, ratio
+    return b if ratio >= 1.0
+    ((b - a) * ratio) + a
+  end
 
   COLOURS = { 
-    :red => CheekyDreams::rgb(255, 0, 0),
-    :green => CheekyDreams::rgb(0, 255, 0),
-    :blue => CheekyDreams::rgb(0, 0, 255)
+    :red => rgb(255, 0, 0),
+    :green => rgb(0, 255, 0),
+    :blue => rgb(0, 0, 255),
+    :yellow => rgb(255,255,0),
+    :aqua => rgb(0,255,255),
+    :purple => rgb(255,0,255),
+    :grey => rgb(192,192,192),
+    :white => rgb(255,255,255)
   }
   
   def self.rgb_for colour
@@ -27,11 +46,14 @@ module CheekyDreams
       raise "Unsupported colour type #{colour}"
     end
   end
+  def rgb_for colour
+    CheekyDreams::rgb_for colour
+  end
   
   def stdout_driver
     Class.new do
       def go rgb
-        puts rgb.class
+        puts rgb
       end
     end.new
   end
@@ -40,7 +62,7 @@ module CheekyDreams
     require 'rainbow'
     Class.new do
       def go rgb
-        print "     ".background(rgb_for(rgb))
+        print "     ".background(rgb)
         print "\r"
       end
     end.new
@@ -54,8 +76,33 @@ module CheekyDreams
     Effect::Solid.new colour
   end
   
+  def fade from, to, over_how_long
+    Effect::Fade.new from, to, over_how_long
+  end
+  
+  def func freq, &block
+    Effect::Func.new freq, block
+  end
+  
   module Effect
     class Effect
+      include Flt
+      include CheekyDreams    
+    end
+    
+    class Func < Effect
+      def initialize freq, block
+        @freq, @block, @last_change = freq, block, Time.at(0)
+      end
+      
+      def next
+        now = Time.now
+        if (now - @last_change) >= (DecNum(1)/DecNum(@freq))
+          @last_change = now
+          @current = rgb_for(@block.yield)
+        end
+        @current
+      end
     end
     
     class Solid < Effect
@@ -73,11 +120,29 @@ module CheekyDreams
       end
       
       def next
-        if (Time.now - @last_change) >= (1/@freq)
-          @last_change = Time.now
-          @current = CheekyDreams::rgb_for(@colours.next)
+        now = Time.now
+        if (now - @last_change) >= (DecNum(1)/DecNum(@freq))
+          @last_change = now
+          @current = rgb_for(@colours.next)
         end
         @current
+      end
+    end
+    
+    class Fade < Effect
+      def initialize from, to, over_how_long
+        @from, @to, @over_how_long = from, to, over_how_long
+      end
+      
+      def next
+        now = Time.now
+        if @started_at == nil
+          @started_at = now
+          @from
+        else
+          ratio_done = (now - @started_at) / @over_how_long
+          CheekyDreams.rgb_between(rgb_for(@from), rgb_for(@to), ratio_done)
+        end
       end
     end
   end
@@ -86,6 +151,7 @@ end
 class Light
   
   include CheekyDreams
+  include Flt
   
   def initialize driver, freq = 5
     @driver = driver
@@ -126,9 +192,10 @@ class Light
             end
           }
         rescue => e
-          puts e
+          puts e.message
+          puts e.backtrace.join("\n")
         end
-        sleep (1/@freq)
+        sleep (DecNum(1)/DecNum(@freq))
       end
     end
   end

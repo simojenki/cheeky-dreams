@@ -1,5 +1,28 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
+describe CheekyDreams do
+  describe "position_between" do
+    it "should calculate the position" do
+      CheekyDreams.position_between(100, 110, 0.5).should == 105
+      CheekyDreams.position_between(110, 100, 0.5).should == 105
+      CheekyDreams.position_between(100, 0, 0.2).should == 80
+      CheekyDreams.position_between(100, 0, 0.25).should == 75
+      CheekyDreams.position_between(100, 0, 1).should == 0
+    end
+    
+    it "should return the end point when the ration goes above 1" do
+      CheekyDreams.position_between(100, 1, 1.01).should == 1
+      CheekyDreams.position_between(96, 99, 999).should == 99
+    end
+  end
+  
+  describe "rgb_between" do
+    it "should calculate the position" do
+      CheekyDreams.rgb_between([100, 50, 0], [110, 20, 0], 0.1).should == [101, 47, 0]
+    end
+  end
+end
+
 describe Light do
   
   include CheekyDreams
