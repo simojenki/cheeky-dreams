@@ -2,7 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe Light do
   
-  include CheekyDreams::RGB
+  include CheekyDreams
   
   describe "changing colour" do
     before :each do
@@ -39,7 +39,7 @@ describe Light do
 end
 
 describe "RGB" do
-  include CheekyDreams::RGB
+  include CheekyDreams
   
   describe "creating with values out of range" do
     it "should blow up" do

@@ -17,13 +17,11 @@ module CheekyDreams
     end
   end
   
-  module RGB
-    def self.rgb r, g, b
-      Rgb.new r, g, b
-    end
-    def rgb r, g, b
-      RGB::rgb r, g, b
-    end
+  def self.rgb r, g, b
+    Rgb.new r, g, b
+  end
+  def rgb r, g, b
+    RGB::rgb r, g, b
   end
 end
 
