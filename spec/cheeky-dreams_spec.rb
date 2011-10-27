@@ -4,25 +4,50 @@ describe Light do
   
   include CheekyDreams
   
+  class StubDriver
+
+    def initialize 
+      @lock = Mutex.new
+    end
+
+    def go colour
+      @lock.synchronize {
+        @colour = colour
+      }
+    end
+    
+    def should_become expected_colour
+      start, match = Time.now, false
+      while ((Time.now - start < 1) && !match) do
+        @lock.synchronize {
+          match = expected_colour == @colour
+        }
+        sleep 0.05
+      end
+      raise "Expected driver to become #{expected_colour}, and didn't, instead is #{@colour}" unless match
+    end
+  end
+  
   describe "changing colour" do
     before :each do
-      @driver = mock('driver')
+      @driver = StubDriver.new
       @light = Light.new @driver
+      @light.on
     end
     
     it "should go red" do
-      @driver.should_receive(:go).with([255,0,0])
       @light.go :red
+      @driver.should_become [255,0,0]
     end
     
     it "should go green" do
-      @driver.should_receive(:go).with([0,255,0])
       @light.go :green
+      @driver.should_become [0,255,0]
     end
     
     it "should go blue" do
-      @driver.should_receive(:go).with([0,0,255])
       @light.go :blue
+      @driver.should_become [0,0,255]
     end
     
     it "should blow up if you give it a symbol it doesnt understand" do
@@ -30,13 +55,13 @@ describe Light do
     end
     
     it "should be able to go any rgb" do
-      @driver.should_receive(:go).with([211, 222, 0])
       @light.go rgb(211, 222, 0)
+      @driver.should_become [211, 222, 0]
     end
     
     it "should be able to go any rgb as just numbers" do
-      @driver.should_receive(:go).with([222, 111, 0])
       @light.go [222, 111, 0]
+      @driver.should_become [222, 111, 0]
     end
   end
 end
