@@ -17,14 +17,15 @@ describe Light do
     end
     
     def should_become expected_colour
+      rgb = expected_colour.is_a?(Symbol) ? Light::COLOURS[expected_colour] : expected_colour
       start, match = Time.now, false
       while ((Time.now - start < 1) && !match) do
         @lock.synchronize {
-          match = expected_colour == @colour
+          match = rgb == @colour
         }
-        sleep 0.05
+        sleep 0.01
       end
-      raise "Expected driver to become #{expected_colour}, and didn't, instead is #{@colour}" unless match
+      raise "Expected driver to become #{rgb}, and didn't, instead is #{@colour}" unless match
     end
   end
   
@@ -63,6 +64,25 @@ describe Light do
       @light.go [222, 111, 0]
       @driver.should_become [222, 111, 0]
     end
+    
+    it "should be able to cycle between colours when specified as rgb" do
+      @light.go cycle([[255, 255, 255], [200, 200, 200], [100, 100, 100]], 10)
+      @driver.should_become [255, 255, 255]
+      @driver.should_become [200, 200, 200]
+      @driver.should_become [100, 100, 100]
+      @driver.should_become [255, 255, 255]
+      @driver.should_become [200, 200, 200]
+    end
+    
+    it "should be able to cycle between colours when specified as symbols" do
+      @light.go cycle([:red, :green, :blue], 10)
+      @driver.should_become :red
+      @driver.should_become :green
+      @driver.should_become :blue
+      @driver.should_become :red
+      @driver.should_become :green
+    end
+    
   end
 end
 

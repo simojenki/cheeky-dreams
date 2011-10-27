@@ -1,13 +1,31 @@
 require 'thread'
 
 module CheekyDreams
-  
+
   def self.rgb r, g, b
     [r, g, b].each { |c| raise "Invalid rgb value #{r}, #{g}, #{b}" if c < 0 || c > 255}
     [r, g, b]
   end
   def rgb r, g, b
     CheekyDreams::rgb(r, g, b)
+  end
+
+  COLOURS = { 
+    :red => CheekyDreams::rgb(255, 0, 0),
+    :green => CheekyDreams::rgb(0, 255, 0),
+    :blue => CheekyDreams::rgb(0, 0, 255)
+  }
+  
+  def self.rgb_for colour
+    case colour
+    when Symbol
+      raise "Unknown colour '#{colour}'" unless COLOURS.has_key?(colour)
+      COLOURS[colour]
+    when Array
+      colour
+    else 
+      raise "Unsupported colour type #{colour}"
+    end
   end
   
   def stdout_driver
@@ -22,7 +40,7 @@ module CheekyDreams
     require 'rainbow'
     Class.new do
       def go rgb
-        print "     ".background(rgb)
+        print "     ".background(rgb_for(rgb))
         print "\r"
       end
     end.new
@@ -42,10 +60,10 @@ module CheekyDreams
     
     class Solid < Effect
       def initialize colour
-        @colour = colour
+        @rgb = CheekyDreams::rgb_for(colour)
       end
       def next
-        @colour
+        @rgb
       end
     end
     
@@ -57,7 +75,7 @@ module CheekyDreams
       def next
         if (Time.now - @last_change) >= (1/@freq)
           @last_change = Time.now
-          @current = @colours.next
+          @current = CheekyDreams::rgb_for(@colours.next)
         end
         @current
       end
@@ -68,12 +86,6 @@ end
 class Light
   
   include CheekyDreams
-  
-  COLOURS = { 
-    :red => CheekyDreams::rgb(255, 0, 0),
-    :green => CheekyDreams::rgb(0, 255, 0),
-    :blue => CheekyDreams::rgb(0, 0, 255)
-  }
   
   def initialize driver, freq = 5
     @driver = driver
@@ -87,11 +99,10 @@ class Light
     @lock.synchronize {
       case colour
         when Symbol
-          raise "Unknown colour '#{colour}'" unless COLOURS.has_key?(colour)
-          @effect = solid(COLOURS[colour])
+          @effect = solid(colour)
         when Array
           @effect = solid(colour)
-        when Effect::Cycle
+        when Effect::Effect
           @effect = colour
         else
           raise "Im sorry dave, I'm afraid I can't do that. #{colour}"
