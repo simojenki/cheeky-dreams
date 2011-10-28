@@ -161,24 +161,26 @@ class Light
     @freq = freq
   end
   
-  def go colour
+  def go effect
+    turn_on unless @on    
     @lock.synchronize {
-      case colour
+      case effect
         when Symbol
-          @effect = solid(colour)
+          @effect = solid(effect)
         when Array
-          @effect = solid(colour)
+          @effect = solid(effect)
         when Effect::Effect
-          @effect = colour
+          @effect = effect
         else
-          raise "Im sorry dave, I'm afraid I can't do that. #{colour}"
+          raise "Im sorry dave, I'm afraid I can't do that. #{effect}"
       end
     }
   end
   
-  def on
+  private
+  def turn_on
     @on = true
-    t = Thread.new do
+    Thread.new do
       last_colour = nil
       while @on
         begin

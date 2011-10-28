@@ -28,6 +28,8 @@ sleep 3
 
 puts "fade from current to somewhere"
 
+puts "shouldnt need to turn the light on"
+
 puts "colour on block"
 cycle = [:blue, :purple].cycle
 light.go(func(2) { cycle.next })

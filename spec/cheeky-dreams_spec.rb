@@ -27,36 +27,10 @@ describe Light do
   
   include CheekyDreams
   
-  class StubDriver
-
-    def initialize 
-      @lock = Mutex.new
-    end
-
-    def go colour
-      @lock.synchronize {
-        @colour = colour
-      }
-    end
-    
-    def should_become expected_colour
-      rgb = expected_colour.is_a?(Symbol) ? Light::COLOURS[expected_colour] : expected_colour
-      start, match = Time.now, false
-      while ((Time.now - start < 1) && !match) do
-        @lock.synchronize {
-          match = rgb == @colour
-        }
-        sleep 0.01
-      end
-      raise "Expected driver to become #{rgb}, and didn't, instead is #{@colour}" unless match
-    end
-  end
-  
   describe "changing colour" do
     before :each do
       @driver = StubDriver.new
       @light = Light.new @driver
-      @light.on
     end
     
     it "should go red" do
