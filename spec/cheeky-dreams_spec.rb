@@ -96,6 +96,28 @@ describe Light do
       @driver.should_become [105, 95, 0]      
     end
     
+    it "should be able to fade from current colour to a new colour" do
+      @light.go [100, 100, 0]
+      @driver.should_become [100, 100, 0]
+      @light.go fade_to([105, 95, 0], 1)
+      @driver.should_become [101, 98, 0]
+      @driver.should_become [102, 97, 0]      
+      @driver.should_become [103, 96, 0]      
+      @driver.should_become [104, 95, 0]      
+      @driver.should_become [105, 95, 0]      
+    end
+    
+    it "should be able to go different colours based on a function" do
+      cycle = [:blue, :red, :green, :purple, :grey, :aqua].cycle
+      @light.go func(10) { cycle.next }
+      @driver.should_become :blue
+      @driver.should_become :red
+      @driver.should_become :green
+      @driver.should_become :purple
+      @driver.should_become :grey
+      @driver.should_become :aqua
+    end
+    
   end
 end
 

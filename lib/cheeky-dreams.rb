@@ -68,7 +68,7 @@ module CheekyDreams
     end.new
   end
   
-  def cycle colours, freq
+  def cycle colours, freq = 1
     Effect::Cycle.new colours, freq
   end
   
@@ -76,11 +76,15 @@ module CheekyDreams
     Effect::Solid.new colour
   end
   
-  def fade from, to, over_how_long
+  def fade from, to, over_how_long = 1
     Effect::Fade.new from, to, over_how_long
   end
+
+  def fade_to to, over_how_long = 1
+    Effect::FadeTo.new to, over_how_long
+  end
   
-  def func freq, &block
+  def func freq = 1, &block
     Effect::Func.new freq, block
   end
   
@@ -95,7 +99,7 @@ module CheekyDreams
         @freq, @block, @last_change = freq, block, Time.at(0)
       end
       
-      def next
+      def next current_colour
         now = Time.now
         if (now - @last_change) >= (DecNum(1)/DecNum(@freq))
           @last_change = now
@@ -109,7 +113,7 @@ module CheekyDreams
       def initialize colour
         @rgb = CheekyDreams::rgb_for(colour)
       end
-      def next
+      def next current_colour
         @rgb
       end
     end
@@ -119,7 +123,7 @@ module CheekyDreams
         @colours, @freq, @last_change = colours.cycle, freq, Time.at(0)
       end
       
-      def next
+      def next current_colour
         now = Time.now
         if (now - @last_change) >= (DecNum(1)/DecNum(@freq))
           @last_change = now
@@ -134,7 +138,7 @@ module CheekyDreams
         @from, @to, @over_how_long = from, to, over_how_long
       end
       
-      def next
+      def next current_colour
         now = Time.now
         if @started_at == nil
           @started_at = now
@@ -143,6 +147,18 @@ module CheekyDreams
           ratio_done = (now - @started_at) / @over_how_long
           CheekyDreams.rgb_between(rgb_for(@from), rgb_for(@to), ratio_done)
         end
+      end
+    end
+    
+    class FadeTo < Effect
+      def initialize to, over_how_long
+        @to, @over_how_long = to, over_how_long
+        @fade = nil
+      end
+      
+      def next current_colour
+        @fade = Fade.new(current_colour, @to, @over_how_long) unless @fade
+        @fade.next current_colour
       end
     end
   end
@@ -186,7 +202,7 @@ class Light
         begin
           @lock.synchronize {
             if @effect
-              new_colour = @effect.next 
+              new_colour = @effect.next last_colour
               if new_colour != last_colour
                 @driver.go new_colour
                 last_colour = new_colour
@@ -201,5 +217,4 @@ class Light
       end
     end
   end
-  
 end

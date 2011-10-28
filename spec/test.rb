@@ -8,7 +8,6 @@ require 'rainbow'
 include CheekyDreams
 
 light = Light.new(ansi_driver, 10)
-light.on
 
 puts "colours"
 [:red, :green, :blue, CheekyDreams::rgb(155, 155, 155)].each do |colour|
@@ -27,6 +26,12 @@ light.go(fade(:red, :green, 2))
 sleep 3
 
 puts "fade from current to somewhere"
+light.go :red
+sleep 2
+light.go fade_to :green
+sleep 2
+light.go fade_to :red
+sleep 2
 
 puts "colour on block"
 cycle = [:blue, :purple].cycle
