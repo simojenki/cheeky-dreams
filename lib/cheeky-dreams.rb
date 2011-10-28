@@ -21,7 +21,7 @@ module CheekyDreams
   
   def self.position_between a, b, ratio
     return b if ratio >= 1.0
-    ((b - a) * ratio) + a
+    (((b - a) * ratio) + a).floor
   end
 
   COLOURS = { 

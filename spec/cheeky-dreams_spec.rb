@@ -2,6 +2,13 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe CheekyDreams do
   describe "position_between" do
+    it "should calculate the position as hole numbers" do
+      CheekyDreams.position_between(100, 102, 0.25).should == 100
+      CheekyDreams.position_between(100, 102, 0.5).should == 101
+      CheekyDreams.position_between(100, 102, 0.75).should == 101
+      CheekyDreams.position_between(100, 102, 1).should == 102
+    end
+    
     it "should calculate the position" do
       CheekyDreams.position_between(100, 110, 0.5).should == 105
       CheekyDreams.position_between(110, 100, 0.5).should == 105
@@ -30,7 +37,7 @@ describe Light do
   describe "changing colour" do
     before :each do
       @driver = StubDriver.new
-      @light = Light.new @driver
+      @light = Light.new @driver, 5
     end
     
     it "should go red" do
@@ -78,6 +85,15 @@ describe Light do
       @driver.should_become :blue
       @driver.should_become :red
       @driver.should_become :green
+    end
+    
+    it "should be able to fade from one colour to another" do
+      @light.go fade([100, 100, 0], [105, 95, 0], 1)
+      @driver.should_become [101, 98, 0]
+      @driver.should_become [102, 97, 0]      
+      @driver.should_become [103, 96, 0]      
+      @driver.should_become [104, 95, 0]      
+      @driver.should_become [105, 95, 0]      
     end
     
   end
