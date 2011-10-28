@@ -1,31 +1,128 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe CheekyDreams do
+  
+  include CheekyDreams
+  
   describe "position_between" do
     it "should calculate the position as hole numbers" do
-      CheekyDreams.position_between(100, 102, 0.25).should == 100
-      CheekyDreams.position_between(100, 102, 0.5).should == 101
-      CheekyDreams.position_between(100, 102, 0.75).should == 101
-      CheekyDreams.position_between(100, 102, 1).should == 102
+      position_between(100, 102, 0.25).should == 100
+      position_between(100, 102, 0.5).should == 101
+      position_between(100, 102, 0.75).should == 101
+      position_between(100, 102, 1).should == 102
     end
     
     it "should calculate the position" do
-      CheekyDreams.position_between(100, 110, 0.5).should == 105
-      CheekyDreams.position_between(110, 100, 0.5).should == 105
-      CheekyDreams.position_between(100, 0, 0.2).should == 80
-      CheekyDreams.position_between(100, 0, 0.25).should == 75
-      CheekyDreams.position_between(100, 0, 1).should == 0
+      position_between(100, 110, 0.5).should == 105
+      position_between(110, 100, 0.5).should == 105
+      position_between(100, 0, 0.2).should == 80
+      position_between(100, 0, 0.25).should == 75
+      position_between(100, 0, 1).should == 0
     end
     
     it "should return the end point when the ration goes above 1" do
-      CheekyDreams.position_between(100, 1, 1.01).should == 1
-      CheekyDreams.position_between(96, 99, 999).should == 99
+      position_between(100, 1, 1.01).should == 1
+      position_between(96, 99, 999).should == 99
     end
   end
   
   describe "rgb_between" do
     it "should calculate the position" do
-      CheekyDreams.rgb_between([100, 50, 0], [110, 20, 0], 0.1).should == [101, 47, 0]
+      rgb_between([100, 50, 0], [110, 20, 0], 0.1).should == [101, 47, 0]
+    end
+  end
+  
+  describe "rgb_for" do
+    it "should return rgb array for simple colours" do
+      rgb_for(:red).should == [255, 0, 0]
+      rgb_for(:green).should == [0, 255, 0]
+      rgb_for(:blue).should == [0, 0, 255]
+    end
+    
+    it "should return an rgb array when given one" do
+      rgb_for([11, 34, 111]).should == [11, 34, 111]
+    end
+    
+    it "should blow up when given meaningless symbol" do
+      lambda { rgb_for(:purple_patch) }.should raise_error "Unknown colour 'purple_patch'"
+    end
+    
+    it "should blow up when given array that isnt rgb" do
+      lambda { rgb_for([1]) }.should raise_error "Invalid rgb [1]"
+      lambda { rgb_for([1, 2, 3, 4]) }.should raise_error "Invalid rgb [1, 2, 3, 4]"
+      lambda { rgb_for(["a", "b", "c"]) }.should raise_error 'Invalid rgb ["a", "b", "c"]'
+    end
+  end
+end
+
+module CheekyDreams::Effect
+  describe Cycle do
+    before :each do
+      @cycle = Cycle.new [:red, :blue, [211, 192, 101]], 22
+    end
+    
+    it "should have a frequency" do
+      @cycle.freq.should == 22
+    end
+    
+    it "should cycle through the colours as rgb" do
+      @cycle.next.should == [255,   0,  0]
+      @cycle.next.should == [  0,   0,255]
+      @cycle.next.should == [211, 192, 101]
+      
+      @cycle.next.should == [255,   0,  0]
+      @cycle.next.should == [  0,   0,255]
+      @cycle.next.should == [211, 192, 101]
+      
+      @cycle.next.should == [255,   0,  0]
+      @cycle.next.should == [  0,   0,255]
+      @cycle.next.should == [211, 192, 101]
+    end
+  end
+  
+  describe Fade do
+    describe "fading between two symbols" do
+      before :each do
+        @fade = Fade.new :blue, :green, 1, 5
+      end
+
+      it "should have a freq of 2" do
+        @fade.freq.should == 5
+      end
+
+      it "should be able to provide the steps when asked" do
+        @fade.next.should == [  0,   0, 255]
+        @fade.next.should == [  0, 255,   0]
+        @fade.next.should == [  0, 255,   0]
+        @fade.next.should == [  0, 255,   0]
+      end
+    end
+    
+    describe "fading between two arbitary rgb values" do
+      before :each do
+        @fade = Fade.new [100, 100, 100], [110, 90, 0], 10, 2
+      end
+
+      it "should have a freq of 2" do
+        @fade.freq.should == 2
+      end
+
+      it "should be able to provide the steps when asked" do
+        @fade.next.should == [100, 100, 100]
+        @fade.next.should == [101,  99,  90]
+        @fade.next.should == [102,  98,  80]
+        @fade.next.should == [103,  97,  70]
+        @fade.next.should == [104,  96,  60]
+        @fade.next.should == [105,  95,  50]
+        @fade.next.should == [106,  94,  40]
+        @fade.next.should == [107,  93,  30]
+        @fade.next.should == [108,  92,  20]
+        @fade.next.should == [109,  91,  10]
+        @fade.next.should == [110,  90,   0]
+        # and then continue to provide the same colour
+        @fade.next.should == [110,  90,   0]
+        @fade.next.should == [110,  90,   0]
+      end  
     end
   end
 end

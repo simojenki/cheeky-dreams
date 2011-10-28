@@ -18,10 +18,16 @@ module CheekyDreams
       position_between(a[2], b[2], ratio),
       ]
   end
+  def rgb_between a, b, ratio
+    CheekyDreams::rgb_between a, b, ratio
+  end
   
   def self.position_between a, b, ratio
     return b if ratio >= 1.0
     (((b - a) * ratio) + a).floor
+  end
+  def position_between a, b, ratio
+    CheekyDreams::position_between a, b, ratio
   end
 
   COLOURS = { 
@@ -41,6 +47,7 @@ module CheekyDreams
       raise "Unknown colour '#{colour}'" unless COLOURS.has_key?(colour)
       COLOURS[colour]
     when Array
+      raise "Invalid rgb #{colour}" unless colour.length == 3 && colour.all? { |c| c.is_a? Fixnum }
       colour
     else 
       raise "Unsupported colour type #{colour}"
@@ -76,8 +83,8 @@ module CheekyDreams
     Effect::Solid.new colour
   end
   
-  def fade from, to, over_how_long = 1
-    Effect::Fade.new from, to, over_how_long
+  def fade from, to, steps = 10, over_how_long = 1
+    Effect::Fade.new from, to, steps, over_how_long
   end
 
   def fade_to to, over_how_long = 1
@@ -88,10 +95,27 @@ module CheekyDreams
     Effect::Func.new freq, block
   end
   
+  def throb freq, amplitude, centre
+    Effect::Throb.new freq, amplitude, centre
+  end
+  
   module Effect
     class Effect
       include Flt
       include CheekyDreams    
+      include Math
+    end
+    
+    class Throb < Effect      
+      def initialize freq, amplitude, centre
+        @freq, @amplitude, @centre, @count = freq, amplitude, centre, 1
+      end
+      
+      def next current_colour
+        x = @freq * (@count += 1)
+        v = sin(x) * @amplitude + @centre
+        [v, 0, 0]
+      end
     end
     
     class Func < Effect
@@ -110,43 +134,50 @@ module CheekyDreams
     end
     
     class Solid < Effect
+      
+      attr_reader :freq
+      
       def initialize colour
-        @rgb = CheekyDreams::rgb_for(colour)
+        @rgb, @freq = CheekyDreams::rgb_for(colour), 1
       end
+      
       def next current_colour
         @rgb
       end
     end
     
     class Cycle < Effect
+      
+      attr_reader :freq
+      
       def initialize colours, freq
-        @colours, @freq, @last_change = colours.cycle, freq, Time.at(0)
+        @cycle, @freq = colours.cycle, freq
       end
       
-      def next current_colour
-        now = Time.now
-        if (now - @last_change) >= (DecNum(1)/DecNum(@freq))
-          @last_change = now
-          @current = rgb_for(@colours.next)
-        end
-        @current
+      def next current_colour = nil
+        rgb_for(@cycle.next)
       end
     end
     
     class Fade < Effect
-      def initialize from, to, over_how_long
-        @from, @to, @over_how_long = from, to, over_how_long
+      
+      attr_reader :freq
+      
+      def initialize from, to, steps, freq
+        @rgb_from, @rgb_to, @freq = rgb_for(from), rgb_for(to), freq
+        @fade = [@rgb_from]
+        (1..(steps-1)).each do |i|
+          @fade << rgb_between(@rgb_from, @rgb_to, DecNum(i)/DecNum(steps))
+        end
+        @fade << @rgb_to
+        @index = 0
       end
       
-      def next current_colour
-        now = Time.now
-        if @started_at == nil
-          @started_at = now
-          @from
-        else
-          ratio_done = (now - @started_at) / @over_how_long
-          CheekyDreams.rgb_between(rgb_for(@from), rgb_for(@to), ratio_done)
-        end
+      def next current_colour = nil
+        return @rgb_to if @index >= @fade.length
+        next_colour = @fade[@index]
+        @index += 1
+        next_colour
       end
     end
     
@@ -169,7 +200,7 @@ class Light
   include CheekyDreams
   include Flt
   
-  def initialize driver, freq = 5
+  def initialize driver, freq = 100
     @driver = driver
     @lock = Mutex.new
     @effect = nil
@@ -197,18 +228,25 @@ class Light
   def turn_on
     @on = true
     Thread.new do
+      current_effect = nil
       last_colour = nil
+      next_colour_time = nil
       while @on
         begin
           @lock.synchronize {
-            if @effect
-              new_colour = @effect.next last_colour
-              if new_colour != last_colour
-                @driver.go new_colour
-                last_colour = new_colour
-              end
+            if @effect && current_effect != @effect
+              current_effect = @effect
+              next_colour_time = Time.at(0)
             end
           }
+          if current_effect
+            if Time.now > next_colour_time
+              new_colour = current_effect.next(last_colour)
+              @driver.go new_colour
+              last_colour = new_colour
+              next_colour_time = Time.now + (DecNum(1)/DecNum(current_effect.freq))
+            end
+          end
         rescue => e
           puts e.message
           puts e.backtrace.join("\n")
