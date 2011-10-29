@@ -1,5 +1,8 @@
+require 'within'
 
 class StubDriver
+
+  include Within
 
   def initialize 
     @lock = Mutex.new
@@ -15,12 +18,10 @@ class StubDriver
   
   def should_become expected_colour
     rgb = expected_colour.is_a?(Symbol) ? CheekyDreams::COLOURS[expected_colour] : expected_colour
-    start, match = Time.now, false
-    while (((Time.now - start) < 1) && !match) do
+    within 1, "driver to become #{rgb}" do
       @lock.synchronize {
-        match = (rgb == @colour)
+        [rgb == @colour, @colour]
       }
     end
-    raise "Expected driver to become #{rgb}, and didn't, instead is #{@colour}, having been #{@colours}" unless match
   end
 end

@@ -48,13 +48,22 @@ module CheekyDreams
       COLOURS[colour]
     when Array
       raise "Invalid rgb #{colour}" unless colour.length == 3 && colour.all? { |c| c.is_a? Fixnum }
-      colour
+      rgb(colour[0], colour[1], colour[2])
     else 
       raise "Unsupported colour type #{colour}"
     end
   end
   def rgb_for colour
     CheekyDreams::rgb_for colour
+  end
+  
+  def stderr_auditor
+    Class.new do
+      def unhandled_error e
+        STDERR.puts e.message
+        STDERR.puts e.backtrace.join("\n")
+      end
+    end.new
   end
   
   def stdout_driver
@@ -200,12 +209,13 @@ class Light
   include CheekyDreams
   include Flt
   
-  def initialize driver, freq = 100
-    @driver = driver
+  attr_accessor :freq, :auditor
+  
+  def initialize driver
+    @driver, @freq, @auditor = driver, 100, stderr_auditor
     @lock = Mutex.new
     @effect = nil
     @on = false
-    @freq = freq
   end
   
   def go effect
@@ -244,14 +254,13 @@ class Light
               new_colour = current_effect.next(last_colour)
               @driver.go new_colour
               last_colour = new_colour
-              next_colour_time = Time.now + (DecNum(1)/DecNum(current_effect.freq))
+              next_colour_time = Time.now + (1/current_effect.freq.to_f)
             end
           end
         rescue => e
-          puts e.message
-          puts e.backtrace.join("\n")
+          auditor.unhandled_error e
         end
-        sleep (DecNum(1)/DecNum(@freq))
+        sleep (1/freq.to_f)
       end
     end
   end

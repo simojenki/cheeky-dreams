@@ -52,6 +52,12 @@ describe CheekyDreams do
       lambda { rgb_for([1, 2, 3, 4]) }.should raise_error "Invalid rgb [1, 2, 3, 4]"
       lambda { rgb_for(["a", "b", "c"]) }.should raise_error 'Invalid rgb ["a", "b", "c"]'
     end
+    
+    it "should blow up when given invalid rgb values" do
+      lambda { rgb_for([0, 256,   0]) }.should raise_error "Invalid rgb value 0, 256, 0"
+      lambda { rgb_for([-1,  0,   0]) }.should raise_error "Invalid rgb value -1, 0, 0"
+      lambda { rgb_for([0,   0, 256]) }.should raise_error "Invalid rgb value 0, 0, 256"
+    end
   end
 end
 
@@ -130,13 +136,71 @@ end
 describe Light do
   
   include CheekyDreams
+  include Within
   
-  describe "changing colour" do
+  before :each do
+    @driver = StubDriver.new
+    @light = Light.new @driver
+  end
+  
+  describe "unhandled errors" do
     before :each do
-      @driver = StubDriver.new
-      @light = Light.new @driver, 5
+      @error = RuntimeError.new "On purpose error"
+      @effect = StubEffect.new(20) { raise @error }
+      @auditor = CollectingAuditor.new
+      @light.auditor = @auditor
     end
     
+    it 'should notify the auditor' do
+      @light.go @effect
+      within(1, "auditor should have received '#{@error}'") { [@auditor.has_received?(@error), @auditor.errors] }
+    end
+  end
+  
+  describe "frequency of effect" do    
+    describe 'when frequency is 1' do
+      before :each do      
+        @effect = StubEffect.new 1
+      end
+      
+      it 'should call the effect almost immediately, and then about 1 second later' do
+        @light.go @effect
+        sleep 0.1
+        @effect.asked_for_colour_count.should be == 1
+        sleep 1
+        @effect.asked_for_colour_count.should be == 2
+      end
+    end
+    
+    describe 'when frequency is 10' do
+      before :each do      
+        @effect = StubEffect.new 10
+      end
+      
+      it 'should call the effect between 9 and 11 times in the next second' do
+        @light.go @effect
+        sleep 1
+        count = @effect.asked_for_colour_count  
+        count.should be <= 11
+        count.should be >= 9
+      end
+    end
+    
+    describe 'when frequency is 5' do
+      before :each do      
+        @effect = StubEffect.new 5
+      end
+      
+      it 'should call the effect 5 times in the next second' do
+        @light.go @effect
+        sleep 1
+        count = @effect.asked_for_colour_count  
+        count.should be == 5
+      end
+    end
+  end
+  
+  describe "changing colour" do
     it "should go red" do
       @light.go :red
       @driver.should_become [255,0,0]
