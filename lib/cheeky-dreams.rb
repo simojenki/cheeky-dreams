@@ -1,5 +1,4 @@
 require 'thread'
-require 'flt'
 
 module CheekyDreams
 
@@ -110,7 +109,6 @@ module CheekyDreams
   
   module Effect
     class Effect
-      include Flt
       include CheekyDreams    
       include Math
       
@@ -206,7 +204,6 @@ end
 class Light
   
   include CheekyDreams
-  include Flt
   
   attr_accessor :freq, :auditor
   

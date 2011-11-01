@@ -9,10 +9,13 @@ include CheekyDreams
 
 light = Light.new(ansi_driver)
 
+puts "throbbing"
+light.go(throb(1, 127, 128))
+sleep 10
+
 puts "is it red"
 light.go [255,0,0]
 sleep 1
-
 
 puts "colours"
 [:red, :green, :blue, CheekyDreams::rgb(155, 155, 155)].each do |colour|
@@ -47,10 +50,5 @@ puts "fake cpu cycles"
 green = 100
 light.go(func(2) { [0, green+=20, 0] })
 sleep 3
-
-
-puts "throbbing"
-light.go(throb(1, 127, 128))
-sleep 10
 
 puts "done"
