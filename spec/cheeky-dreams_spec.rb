@@ -228,6 +228,36 @@ module CheekyDreams::Effect
       end
     end
   end
+  
+  describe Throb do
+    before :each do
+      @throb = Throb.new 10, [100, 100, 100], [250, 50, 0]
+    end
+    
+    it "should have r_amp" do
+      @throb.r_amp.should == 75
+    end
+    
+    it "should have r_centre" do
+      @throb.r_centre.should == 175
+    end
+    
+    it "should have g_amp" do
+      @throb.g_amp.should == 25
+    end
+    
+    it "should have g_centre" do
+      @throb.g_centre.should == 75
+    end
+    
+    it "should have b_amp" do
+      @throb.b_amp.should == 50
+    end
+    
+    it "should have b_centre" do
+      @throb.b_centre.should == 50
+    end
+  end
 end
 
 describe Light do

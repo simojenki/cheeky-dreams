@@ -10,7 +10,7 @@ include CheekyDreams
 light = Light.new(ansi_driver)
 
 puts "throbbing"
-light.throb(1, 127, 128)
+light.throb(2, [255,0,0],[0, 255, 0])
 sleep 10
 
 puts "is it red"

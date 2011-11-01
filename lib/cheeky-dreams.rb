@@ -95,7 +95,7 @@ module CheekyDreams
       end
     end
     
-    class Throb < Effect      
+    class Throb2 < Effect      
       def initialize freq, amplitude, centre
         super freq
         @amplitude, @centre, @count = amplitude, centre, 1
@@ -107,6 +107,43 @@ module CheekyDreams
         [v, 0, 0]
       end
     end
+
+    class Throb < Effect
+      attr_reader :r_amp, :r_centre, :g_amp, :g_centre, :b_amp, :b_centre
+            
+      def initialize freq, from, to
+        super freq
+        @r_centre, @r_amp = centre_and_amp from[0], to[0]
+        @g_centre, @g_amp = centre_and_amp from[1], to[1]
+        @b_centre, @b_amp = centre_and_amp from[2], to[2]
+        @count = 1
+      end
+      
+      def next current_colour
+        x = sin(freq * @count)
+        r = x * r_amp + r_centre
+        g = x * g_amp + g_centre
+        b = x * b_amp + b_centre
+        # x = freq * (@count += 1)
+        # v = sin(x) * @amplitude + @centre
+        # [v, 0, 0]
+        
+        @count += 1
+        [r, g, b]
+      end
+      
+      private 
+      def centre_and_amp from, to
+        amp = ((from - to).abs / 2.0).floor
+        centre = max(from, to) - amp
+        [centre, amp]
+      end
+      
+      def max a, b
+        a > b ? a : b
+      end
+    end
+
     
     class Func < Effect
       def initialize freq, &block
