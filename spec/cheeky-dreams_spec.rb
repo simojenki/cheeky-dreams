@@ -202,6 +202,32 @@ module CheekyDreams::Effect
       end
     end
   end
+  
+  describe Func do
+    describe "when the block return rgb values" do
+      before :each do
+        @func = Func.new(22) { |current_colour| [current_colour[0] + 1, current_colour[1] + 1, current_colour[2] + 1] }
+      end
+      
+      it "should have a freq of 22" do
+        @func.freq.should == 22
+      end
+      
+      it "should return the given rgb plus 1 to each of r, g, and b" do
+        @func.next([2, 5, 6]).should == [3, 6, 7]
+      end
+    end
+    
+    describe "when the block return symbol" do
+      before :each do
+        @func = Func.new(22) { |current_colour| :purple }
+      end
+      
+      it "should return the rgb for the symbol" do
+        @func.next([2, 5, 6]).should == COLOURS[:purple]
+      end
+    end
+  end
 end
 
 describe Light do
@@ -320,22 +346,23 @@ describe Light do
     end
     
     it "should be able to fade from one colour to another" do
-      @light.go fade([100, 100, 0], [105, 95, 0], 1)
-      @driver.should_become [101, 98, 0]
-      @driver.should_become [102, 97, 0]      
-      @driver.should_become [103, 96, 0]      
-      @driver.should_become [104, 95, 0]      
+      @light.go fade([100, 100, 0], [105, 95, 0], 5, 2)
+      @driver.should_become [101, 99, 0]
+      @driver.should_become [102, 98, 0]      
+      @driver.should_become [103, 97, 0]      
+      @driver.should_become [104, 96, 0]      
       @driver.should_become [105, 95, 0]      
     end
     
     it "should be able to fade from current colour to a new colour" do
       @light.go [100, 100, 0]
       @driver.should_become [100, 100, 0]
-      @light.go fade_to([105, 95, 0], 1)
-      @driver.should_become [101, 98, 0]
-      @driver.should_become [102, 97, 0]      
-      @driver.should_become [103, 96, 0]      
-      @driver.should_become [104, 95, 0]      
+      
+      @light.go fade_to([105, 95, 0], 5, 2)
+      @driver.should_become [101, 99, 0]
+      @driver.should_become [102, 98, 0]      
+      @driver.should_become [103, 97, 0]      
+      @driver.should_become [104, 96, 0]      
       @driver.should_become [105, 95, 0]      
     end
     
@@ -349,7 +376,6 @@ describe Light do
       @driver.should_become :grey
       @driver.should_become :aqua
     end
-    
   end
 end
 

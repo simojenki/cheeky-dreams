@@ -92,16 +92,16 @@ module CheekyDreams
     Effect::Solid.new colour
   end
   
-  def fade from, to, steps = 10, over_how_long = 1
-    Effect::Fade.new from, to, steps, over_how_long
+  def fade from, to, steps = 10, freq = 1
+    Effect::Fade.new from, to, steps, freq
   end
 
-  def fade_to to, over_how_long = 1
-    Effect::FadeTo.new to, over_how_long
+  def fade_to to, steps = 10, freq = 1
+    Effect::FadeTo.new to, steps, freq
   end
   
   def func freq = 1, &block
-    Effect::Func.new freq, block
+    Effect::Func.new freq, &block
   end
   
   def throb freq, amplitude, centre
@@ -135,18 +135,13 @@ module CheekyDreams
     end
     
     class Func < Effect
-      def initialize freq, block
+      def initialize freq, &block
         super freq
-        @block, @last_change = block, Time.at(0)
+        @block = block
       end
       
-      def next current_colour
-        now = Time.now
-        if (now - @last_change) >= (DecNum(1)/DecNum(@freq))
-          @last_change = now
-          @current = rgb_for(@block.yield)
-        end
-        @current
+      def next current_colour = nil
+        rgb_for(@block.yield(current_colour))
       end
     end
     

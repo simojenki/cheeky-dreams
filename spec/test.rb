@@ -7,7 +7,7 @@ require 'rainbow'
 
 include CheekyDreams
 
-light = Light.new(ansi_driver, 10)
+light = Light.new(ansi_driver)
 
 puts "is it red"
 light.go [255,0,0]
@@ -25,17 +25,17 @@ light.go(cycle(CheekyDreams::COLOURS.keys, 2))
 sleep 5
 
 puts "fade"
-light.go(fade(:green, :red, 2))
+light.go(fade(:green, :red, 20, 2))
 sleep 3
-light.go(fade(:red, :green, 2))
+light.go(fade(:red, :green, 20, 2))
 sleep 3
 
 puts "fade from current to somewhere"
 light.go :red
 sleep 2
-light.go fade_to :green
+light.go fade_to :green, 20, 2
 sleep 2
-light.go fade_to :red
+light.go fade_to :red, 20, 2
 sleep 2
 
 puts "colour on block"
