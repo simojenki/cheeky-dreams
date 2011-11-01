@@ -177,9 +177,7 @@ module CheekyDreams
         super freq
         @rgb_from, @rgb_to = rgb_for(from), rgb_for(to)
         @fade = [@rgb_from]
-        (1..(steps-1)).each do |i|
-          @fade << rgb_between(@rgb_from, @rgb_to, DecNum(i)/DecNum(steps))
-        end
+        (1..(steps-1)).each { |i| @fade << rgb_between(@rgb_from, @rgb_to, i / steps.to_f) }
         @fade << @rgb_to
         @index = 0
       end
