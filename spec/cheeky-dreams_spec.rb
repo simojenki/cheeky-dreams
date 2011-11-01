@@ -328,7 +328,7 @@ describe Light do
     end
     
     it "should be able to cycle between colours when specified as rgb" do
-      @light.go cycle([[255, 255, 255], [200, 200, 200], [100, 100, 100]], 10)
+      @light.cycle([[255, 255, 255], [200, 200, 200], [100, 100, 100]], 10)
       @driver.should_become [255, 255, 255]
       @driver.should_become [200, 200, 200]
       @driver.should_become [100, 100, 100]
@@ -337,7 +337,7 @@ describe Light do
     end
     
     it "should be able to cycle between colours when specified as symbols" do
-      @light.go cycle([:red, :green, :blue], 10)
+      @light.cycle([:red, :green, :blue], 10)
       @driver.should_become :red
       @driver.should_become :green
       @driver.should_become :blue
@@ -346,7 +346,7 @@ describe Light do
     end
     
     it "should be able to fade from one colour to another" do
-      @light.go fade([100, 100, 0], [105, 95, 0], 5, 2)
+      @light.fade([100, 100, 0], [105, 95, 0], 5, 2)
       @driver.should_become [101, 99, 0]
       @driver.should_become [102, 98, 0]      
       @driver.should_become [103, 97, 0]      
@@ -358,7 +358,7 @@ describe Light do
       @light.go [100, 100, 0]
       @driver.should_become [100, 100, 0]
       
-      @light.go fade_to([105, 95, 0], 5, 2)
+      @light.fade_to([105, 95, 0], 5, 2)
       @driver.should_become [101, 99, 0]
       @driver.should_become [102, 98, 0]      
       @driver.should_become [103, 97, 0]      
@@ -368,7 +368,7 @@ describe Light do
     
     it "should be able to go different colours based on a function" do
       cycle = [:blue, :red, :green, :purple, :grey, :aqua].cycle
-      @light.go func(10) { cycle.next }
+      @light.func(10) { cycle.next }
       @driver.should_become :blue
       @driver.should_become :red
       @driver.should_become :green

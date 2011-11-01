@@ -83,30 +83,6 @@ module CheekyDreams
     end.new
   end
   
-  def cycle colours, freq = 1
-    Effect::Cycle.new colours, freq
-  end
-  
-  def solid colour
-    Effect::Solid.new colour
-  end
-  
-  def fade from, to, steps = 10, freq = 1
-    Effect::Fade.new from, to, steps, freq
-  end
-
-  def fade_to to, steps = 10, freq = 1
-    Effect::FadeTo.new to, steps, freq
-  end
-  
-  def func freq = 1, &block
-    Effect::Func.new freq, &block
-  end
-  
-  def throb freq, amplitude, centre
-    Effect::Throb.new freq, amplitude, centre
-  end
-  
   module Effect
     class Effect
       include CheekyDreams    
@@ -214,20 +190,44 @@ class Light
     @on = false
   end
   
+  def cycle colours, freq = 1
+    go(Effect::Cycle.new(colours, freq))
+  end
+  
+  def solid colour
+    go(Effect::Solid.new(colour))
+  end
+  
+  def fade from, to, steps = 10, freq = 1
+    go Effect::Fade.new from, to, steps, freq
+  end
+
+  def fade_to to, steps = 10, freq = 1
+    go Effect::FadeTo.new to, steps, freq
+  end
+  
+  def func freq = 1, &block
+    go Effect::Func.new freq, &block
+  end
+  
+  def throb freq, amplitude, centre
+    go Effect::Throb.new freq, amplitude, centre
+  end
+  
   def go effect
-    turn_on unless @on    
     @lock.synchronize {
       case effect
         when Symbol
-          @effect = solid(effect)
+          @effect = Effect::Solid.new(effect)
         when Array
-          @effect = solid(effect)
+          @effect = Effect::Solid.new(effect)
         when Effect::Effect
           @effect = effect
         else
           raise "Im sorry dave, I'm afraid I can't do that. #{effect}"
       end
     }
+    turn_on unless @on    
   end
   
   private
