@@ -191,13 +191,17 @@ module CheekyDreams
     end
     
     class FadeTo < Effect
-      def initialize to, over_how_long
-        @to, @over_how_long = to, over_how_long
+      def initialize to, steps, freq
+        super freq
+        @to, @steps = to, steps
         @fade = nil
       end
       
       def next current_colour
-        @fade = Fade.new(current_colour, @to, @over_how_long) unless @fade
+        unless @fade
+          @fade = Fade.new(current_colour, @to, @steps, freq)
+          @fade.next current_colour
+        end
         @fade.next current_colour
       end
     end

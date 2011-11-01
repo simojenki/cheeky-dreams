@@ -160,6 +160,48 @@ module CheekyDreams::Effect
       end  
     end
   end
+  
+  describe FadeTo do
+    describe "fading to a symbol" do
+      before :each do
+        @fade_to = FadeTo.new :green, 11, 2
+      end
+      
+      it "should have a freq of 2" do
+        @fade_to.freq.should == 2
+      end
+      
+      it "should be able to gradually go to colour when asked" do
+        @fade_to.next([0, 145, 0]).should == [0, 155, 0]
+        @fade_to.next([0, 155, 0]).should == [0, 165, 0]
+        @fade_to.next([0, 165, 0]).should == [0, 175, 0]
+        @fade_to.next([0, 175, 0]).should == [0, 185, 0]
+        @fade_to.next([0, 185, 0]).should == [0, 195, 0]
+        @fade_to.next([0, 195, 0]).should == [0, 205, 0]
+        @fade_to.next([0, 205, 0]).should == [0, 215, 0]
+        @fade_to.next([0, 215, 0]).should == [0, 225, 0]
+        @fade_to.next([0, 225, 0]).should == [0, 235, 0]
+        @fade_to.next([0, 235, 0]).should == [0, 245, 0]
+        @fade_to.next([0, 245, 0]).should == [0, 255, 0]
+      end
+    end
+    
+    describe "fading to a random rgb" do
+      before :each do
+        @fade_to = FadeTo.new [130, 80, 170], 3, 20
+      end
+      
+      it "should have a freq of 20" do
+        @fade_to.freq.should == 20
+      end
+      
+      it "should be able to gradually go to colour when asked" do
+        @fade_to.next([190, 77, 140]).should == [170, 78, 150]
+        @fade_to.next([170, 78, 150]).should == [150, 79, 160]
+        @fade_to.next([150, 79, 160]).should == [130, 80, 170]
+      end
+    end
+  end
 end
 
 describe Light do
