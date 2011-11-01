@@ -153,7 +153,7 @@ module CheekyDreams
     class Solid < Effect
       def initialize colour
         super 1
-        @rgb = CheekyDreams::rgb_for(colour)
+        @rgb = rgb_for(colour)
       end
       
       def next current_colour = nil
