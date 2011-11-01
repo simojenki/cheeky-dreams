@@ -113,15 +113,22 @@ module CheekyDreams
       include Flt
       include CheekyDreams    
       include Math
+      
+      attr_reader :freq
+      
+      def initialize freq
+        @freq = freq
+      end
     end
     
     class Throb < Effect      
       def initialize freq, amplitude, centre
-        @freq, @amplitude, @centre, @count = freq, amplitude, centre, 1
+        super freq
+        @amplitude, @centre, @count = amplitude, centre, 1
       end
       
       def next current_colour
-        x = @freq * (@count += 1)
+        x = freq * (@count += 1)
         v = sin(x) * @amplitude + @centre
         [v, 0, 0]
       end
@@ -129,7 +136,8 @@ module CheekyDreams
     
     class Func < Effect
       def initialize freq, block
-        @freq, @block, @last_change = freq, block, Time.at(0)
+        super freq
+        @block, @last_change = block, Time.at(0)
       end
       
       def next current_colour
@@ -143,24 +151,20 @@ module CheekyDreams
     end
     
     class Solid < Effect
-      
-      attr_reader :freq
-      
       def initialize colour
-        @rgb, @freq = CheekyDreams::rgb_for(colour), 1
+        super 1
+        @rgb = CheekyDreams::rgb_for(colour)
       end
       
-      def next current_colour
+      def next current_colour = nil
         @rgb
       end
     end
     
     class Cycle < Effect
-      
-      attr_reader :freq
-      
       def initialize colours, freq
-        @cycle, @freq = colours.cycle, freq
+        super freq
+        @cycle = colours.cycle
       end
       
       def next current_colour = nil
@@ -169,11 +173,9 @@ module CheekyDreams
     end
     
     class Fade < Effect
-      
-      attr_reader :freq
-      
       def initialize from, to, steps, freq
-        @rgb_from, @rgb_to, @freq = rgb_for(from), rgb_for(to), freq
+        super freq
+        @rgb_from, @rgb_to = rgb_for(from), rgb_for(to)
         @fade = [@rgb_from]
         (1..(steps-1)).each do |i|
           @fade << rgb_between(@rgb_from, @rgb_to, DecNum(i)/DecNum(steps))
@@ -254,13 +256,13 @@ class Light
               new_colour = current_effect.next(last_colour)
               @driver.go new_colour
               last_colour = new_colour
-              next_colour_time = Time.now + (1/current_effect.freq.to_f)
+              next_colour_time = Time.now + (1 / current_effect.freq.to_f)
             end
           end
         rescue => e
           auditor.unhandled_error e
         end
-        sleep (1/freq.to_f)
+        sleep (1 / freq.to_f)
       end
     end
   end

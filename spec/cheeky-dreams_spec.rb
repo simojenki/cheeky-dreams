@@ -62,6 +62,35 @@ describe CheekyDreams do
 end
 
 module CheekyDreams::Effect
+  
+  include CheekyDreams
+  
+  describe Solid do
+    describe "when is symbols" do
+      before :each do
+        @solid = Solid.new :purple
+      end
+
+      it "should return rgb every time called" do
+        @solid.next.should == COLOURS[:purple]
+        @solid.next.should == COLOURS[:purple]
+        @solid.next.should == COLOURS[:purple]
+      end
+    end
+    
+    describe "when is random rgb value" do
+      before :each do
+        @solid = Solid.new [123, 123, 123]
+      end
+
+      it "should return rgb every time called" do
+        @solid.next.should == [123, 123, 123]
+        @solid.next.should == [123, 123, 123]
+        @solid.next.should == [123, 123, 123]
+      end
+    end
+  end
+  
   describe Cycle do
     before :each do
       @cycle = Cycle.new [:red, :blue, [211, 192, 101]], 22
