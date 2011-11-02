@@ -2,46 +2,37 @@ require 'thread'
 
 module CheekyDreams
 
-  def self.rgb r, g, b
+  def rgb r, g, b
     [r, g, b].each { |c| raise "Invalid rgb value #{r}, #{g}, #{b}" if c < 0 || c > 255}
     [r, g, b]
   end
-  def rgb r, g, b
-    CheekyDreams::rgb(r, g, b)
-  end
   
-  def self.rgb_between a, b, ratio
+  def rgb_between a, b, ratio
     [
       position_between(a[0], b[0], ratio),
       position_between(a[1], b[1], ratio),
       position_between(a[2], b[2], ratio),
       ]
   end
-  def rgb_between a, b, ratio
-    CheekyDreams::rgb_between a, b, ratio
-  end
   
-  def self.position_between a, b, ratio
+  def position_between a, b, ratio
     return b if ratio >= 1.0
     (((b - a) * ratio) + a).floor
   end
-  def position_between a, b, ratio
-    CheekyDreams::position_between a, b, ratio
-  end
 
   COLOURS = { 
-    :off => rgb(0, 0, 0),
-    :red => rgb(255, 0, 0),
-    :green => rgb(0, 255, 0),
-    :blue => rgb(0, 0, 255),
-    :yellow => rgb(255,255,0),
-    :aqua => rgb(0,255,255),
-    :purple => rgb(255,0,255),
-    :grey => rgb(192,192,192),
-    :white => rgb(255,255,255)
+    :off => [0, 0, 0],
+    :red => [255, 0, 0],
+    :green => [0, 255, 0],
+    :blue => [0, 0, 255],
+    :yellow => [255,255,0],
+    :aqua => [0,255,255],
+    :purple => [255,0,255],
+    :grey => [192,192,192],
+    :white => [255,255,255]
   }
   
-  def self.rgb_for colour
+  def rgb_for colour
     case colour
     when Symbol
       raise "Unknown colour '#{colour}'" unless COLOURS.has_key?(colour)
@@ -53,15 +44,19 @@ module CheekyDreams
       raise "Unsupported colour type #{colour}"
     end
   end
-  def rgb_for colour
-    CheekyDreams::rgb_for colour
-  end
   
   def stderr_auditor
     Class.new do
       def unhandled_error e
         STDERR.puts e.message
         STDERR.puts e.backtrace.join("\n")
+      end
+    end.new
+  end
+  
+  def dev_null_auditor
+    Class.new do
+      def unhandled_error e
       end
     end.new
   end
@@ -248,7 +243,7 @@ class Light
   attr_accessor :freq, :auditor
   
   def initialize driver
-    @driver, @freq, @auditor = driver, 100, stderr_auditor
+    @driver, @freq, @auditor = driver, 100, dev_null_auditor
     @lock = Mutex.new
     @effect = nil
     @on = false
