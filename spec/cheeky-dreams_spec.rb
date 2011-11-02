@@ -79,6 +79,22 @@ module CheekyDreams::Device
       @device_path = "/device"
     end
     
+    describe "when cannot write to the files" do
+      before :each do
+        @device = DreamCheeky.new @device_path, 255
+      end
+
+      describe "making it go 123,34,255" do
+        before :each do
+          @device.should_receive(:system).with("echo 123 > /device/red").and_return false
+        end
+
+        it "should turn the light the correct colours" do
+          lambda { @device.go [123, 34, 255] }.should raise_error "Failed to update /device/red, do you have permissions to write to that file??"
+        end
+      end
+    end
+    
     describe "when the max threshold is 100" do
       before :each do
         @device = DreamCheeky.new @device_path, 100

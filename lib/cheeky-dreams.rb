@@ -96,7 +96,8 @@ module CheekyDreams
       end
       
       def go rgb
-        system "echo #{using_threshold(rgb[0])} > #{path}/red"
+        worked = system "echo #{using_threshold(rgb[0])} > #{path}/red"
+        raise "Failed to update #{path}/red, do you have permissions to write to that file??" unless worked
         system "echo #{using_threshold(rgb[1])} > #{path}/green"
         system "echo #{using_threshold(rgb[2])} > #{path}/blue"
       end
