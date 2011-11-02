@@ -30,6 +30,7 @@ module CheekyDreams
   end
 
   COLOURS = { 
+    :off => rgb(0, 0, 0),
     :red => rgb(255, 0, 0),
     :green => rgb(0, 255, 0),
     :blue => rgb(0, 0, 255),
@@ -81,6 +82,31 @@ module CheekyDreams
         print "\r"
       end
     end.new
+  end
+  
+  def find_dream_cheeky_usb_device
+    Device::DreamCheeky.new(File.dirname(Dir.glob('/sys/devices/**/red').first))
+  end
+  
+  module Device
+    class DreamCheeky
+      attr_reader :path
+      def initialize path, max_threshold = 50
+        @path, @max_threshold = path, max_threshold
+      end
+      
+      def go rgb
+        system "echo #{using_threshold(rgb[0])} > #{path}/red"
+        system "echo #{using_threshold(rgb[1])} > #{path}/green"
+        system "echo #{using_threshold(rgb[2])} > #{path}/blue"
+      end
+      
+      private 
+      def using_threshold colour
+        colour if @threshold == 255
+        ((colour / 255.to_f) * @max_threshold).floor
+      end 
+    end
   end
   
   module Effect

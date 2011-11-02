@@ -4,6 +4,14 @@ describe CheekyDreams do
   
   include CheekyDreams
   
+  describe "find_dream_cheeky_usb_device" do
+    it "should locate the rgb files and return the driver" do
+      Dir.should_receive(:glob).with('/sys/devices/**/red').and_return(["/sys/devices/some-crazy-pci-bus-stuff/red"])
+      driver = find_dream_cheeky_usb_device
+      driver.path.should == "/sys/devices/some-crazy-pci-bus-stuff"
+    end
+  end
+  
   describe "position_between" do
     it "should calculate the position as hole numbers" do
       position_between(100, 102, 0.25).should == 100
@@ -34,6 +42,7 @@ describe CheekyDreams do
   
   describe "rgb_for" do
     it "should return rgb array for simple colours" do
+      rgb_for(:off).should == [0, 0, 0]
       rgb_for(:red).should == [255, 0, 0]
       rgb_for(:green).should == [0, 255, 0]
       rgb_for(:blue).should == [0, 0, 255]
@@ -57,6 +66,65 @@ describe CheekyDreams do
       lambda { rgb_for([0, 256,   0]) }.should raise_error "Invalid rgb value 0, 256, 0"
       lambda { rgb_for([-1,  0,   0]) }.should raise_error "Invalid rgb value -1, 0, 0"
       lambda { rgb_for([0,   0, 256]) }.should raise_error "Invalid rgb value 0, 0, 256"
+    end
+  end
+end
+
+module CheekyDreams::Device
+  
+  include CheekyDreams
+  
+  describe DreamCheeky do
+    before :each do
+      @device_path = "/device"
+    end
+    
+    describe "when the max threshold is 100" do
+      before :each do
+        @device = DreamCheeky.new @device_path, 100
+      end
+
+      describe "making it go 123,34,255" do
+        before :each do
+          @device.should_receive(:system).with("echo 48 > /device/red").and_return(true)
+          @device.should_receive(:system).with("echo 13 > /device/green").and_return(true)
+          @device.should_receive(:system).with("echo 100 > /device/blue").and_return(true)
+        end
+
+        it "should turn the light the correct colours" do
+          @device.go [123, 34, 255]
+        end
+      end
+      
+      describe "making it go 0,1,100" do
+        before :each do
+          @device.should_receive(:system).with("echo 0 > /device/red").and_return(true)
+          @device.should_receive(:system).with("echo 0 > /device/green").and_return(true)
+          @device.should_receive(:system).with("echo 39 > /device/blue").and_return(true)
+        end
+
+        it "should turn the light the correct colours" do
+          @device.go [0, 1, 100]
+        end
+      end
+    end
+    
+    describe "when the max threshold is 255" do
+      before :each do
+        @device = DreamCheeky.new @device_path, 255
+      end
+
+      describe "making it go 123,34,255" do
+        before :each do
+          @device.should_receive(:system).with("echo 123 > /device/red").and_return(true)
+          @device.should_receive(:system).with("echo 34 > /device/green").and_return(true)
+          @device.should_receive(:system).with("echo 255 > /device/blue").and_return(true)
+        end
+
+        it "should turn the light the correct colours" do
+          @device.go [123, 34, 255]
+        end
+      end
     end
   end
 end

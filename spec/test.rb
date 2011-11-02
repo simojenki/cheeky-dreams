@@ -7,7 +7,7 @@ require 'rainbow'
 
 include CheekyDreams
 
-light = Light.new(ansi_driver)
+light = Light.new find_dream_cheeky_usb_device
 
 puts "throbbing"
 light.throb(2, [255,0,0],[0, 255, 0])
