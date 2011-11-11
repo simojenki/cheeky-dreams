@@ -314,6 +314,7 @@ class Light
             if Time.now > next_colour_time
               new_colour = current_effect.next(last_colour)
               @driver.go new_colour
+              @auditor.audit :colour_change, new_colour.to_s
               last_colour = new_colour
               next_colour_time = Time.now + (1 / current_effect.freq.to_f)
             end

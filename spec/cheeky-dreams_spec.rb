@@ -383,6 +383,8 @@ describe Light do
   before :each do
     @driver = StubDriver.new
     @light = Light.new @driver
+    @auditor = CollectingAuditor.new
+    @light.auditor = @auditor
   end
   
   describe "unhandled errors" do
@@ -390,8 +392,6 @@ describe Light do
       @error_message = "On purpose error"
       @error = RuntimeError.new @error_message
       @effect = StubEffect.new(20) { raise @error }
-      @auditor = CollectingAuditor.new
-      @light.auditor = @auditor
     end
     
     it 'should notify the auditor' do
@@ -444,6 +444,11 @@ describe Light do
   end
   
   describe "changing colour" do
+    it "should tell the auditor" do
+      @light.go [22, 11, 33]
+      within(1, "auditor should have received ':colour_change - [22, 11, 33]'") { [@auditor.has_received?(:colour_change, "[22, 11, 33]"), @auditor.events] }
+    end
+    
     it "should go red" do
       @light.go :red
       @driver.should_become [255,0,0]
