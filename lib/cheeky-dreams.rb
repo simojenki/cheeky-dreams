@@ -32,16 +32,15 @@ module CheekyDreams
     :white => [255,255,255]
   }
   
-  def rgb_for colour
-    case colour
-    when Symbol
-      raise "Unknown colour '#{colour}'" unless COLOURS.has_key?(colour)
-      COLOURS[colour]
-    when Array
-      raise "Invalid rgb #{colour}" unless colour.length == 3 && colour.all? { |c| c.is_a? Fixnum }
-      rgb(colour[0], colour[1], colour[2])
+  def rgb_for *rgb_args
+    args = rgb_args.flatten
+    if args.length == 1 && args[0].is_a?(Symbol)
+      raise "Unknown colour '#{args[0]}'" unless COLOURS.has_key?(args[0])
+      COLOURS[args[0]]
+    elsif (args.length == 3 && args.all? { |c| c.is_a? Numeric })
+      rgb(args[0].floor, args[1].floor, args[2].floor)
     else 
-      raise "Unsupported colour type #{colour}"
+      raise "Invalid rgb #{args}"
     end
   end
   

@@ -51,13 +51,17 @@ describe CheekyDreams do
     it "should return an rgb array when given one" do
       rgb_for([11, 34, 111]).should == [11, 34, 111]
     end
+
+    it "should take params and return an rgb array" do
+      rgb_for(11, 34, 111).should == [11, 34, 111]
+    end
     
     it "should blow up when given meaningless symbol" do
       lambda { rgb_for(:purple_patch) }.should raise_error "Unknown colour 'purple_patch'"
     end
     
     it "should blow up when given array that isnt rgb" do
-      lambda { rgb_for([1]) }.should raise_error "Invalid rgb [1]"
+      lambda { rgb_for(1, 2) }.should raise_error "Invalid rgb [1, 2]"
       lambda { rgb_for([1, 2, 3, 4]) }.should raise_error "Invalid rgb [1, 2, 3, 4]"
       lambda { rgb_for(["a", "b", "c"]) }.should raise_error 'Invalid rgb ["a", "b", "c"]'
     end
@@ -66,6 +70,10 @@ describe CheekyDreams do
       lambda { rgb_for([0, 256,   0]) }.should raise_error "Invalid rgb value 0, 256, 0"
       lambda { rgb_for([-1,  0,   0]) }.should raise_error "Invalid rgb value -1, 0, 0"
       lambda { rgb_for([0,   0, 256]) }.should raise_error "Invalid rgb value 0, 0, 256"
+    end
+    
+    it "should floor values" do
+      rgb_for(2.4, 0.1, 255.3).should == [2, 0, 255]
     end
   end
 end
