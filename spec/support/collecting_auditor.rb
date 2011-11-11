@@ -1,18 +1,18 @@
-
+AuditEvent = Struct.new(:type, :message)
 
 class CollectingAuditor
   
-  attr_reader :errors
+  attr_reader :events
   
   def initialize
-    @errors = []
+    @events = []
   end
   
-  def unhandled_error e
-    @errors << e
+  def audit type, message
+    @events << AuditEvent.new(type, message)
   end
   
-  def has_received? e
-    @errors.include? e
+  def has_received? type, message
+    @events.include? AuditEvent.new(type, message)
   end
 end

@@ -41,13 +41,23 @@ module CheekyDreams
     end
   end
 
-  def stderr_auditor
-    Class.new do
-      def unhandled_error e
-        STDERR.puts e.message
-        STDERR.puts e.backtrace.join("\n")
+  class StdIOAuditor
+    def initialize out = STDOUT, err = STDERR
+      @out, @err = out, err
+    end
+    
+    def audit type, message
+      case type
+      when :error
+        @err.puts "#{type} - #{message}"
+      else
+        @out.puts "#{type} - #{message}"
       end
-    end.new
+    end
+  end
+
+  def stdio_audit out = STDOUT, err = STDERR
+    StdIOAuditor.new(out, err)
   end
   
   def dev_null_auditor
@@ -309,7 +319,7 @@ class Light
             end
           end
         rescue => e
-          auditor.unhandled_error e
+          auditor.audit :error, e.message
         end
         sleep (1 / freq.to_f)
       end

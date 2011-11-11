@@ -78,6 +78,29 @@ describe CheekyDreams do
   end
 end
 
+module CheekyDreams
+  describe StdIOAuditor do
+    before :each do
+      @out, @err = StringIO.new, StringIO.new
+      @auditor = StdIOAuditor.new(@out, @err)
+    end
+    
+    it 'should report :error to stderr, with newlines between each one' do
+      @auditor.audit :error, "damn"
+      @auditor.audit :error, "this"
+      @out.string.should == ""
+      @err.string.should == "error - damn\nerror - this\n"
+    end
+    
+    it 'should report other symbols to stdout, with newlines between each one' do
+      @auditor.audit :mmmm, "beer"
+      @auditor.audit :tastes, "good"
+      @out.string.should == "mmmm - beer\ntastes - good\n"
+      @err.string.should == ""
+    end
+  end
+end
+
 module CheekyDreams::Device
   
   include CheekyDreams
@@ -364,7 +387,8 @@ describe Light do
   
   describe "unhandled errors" do
     before :each do
-      @error = RuntimeError.new "On purpose error"
+      @error_message = "On purpose error"
+      @error = RuntimeError.new @error_message
       @effect = StubEffect.new(20) { raise @error }
       @auditor = CollectingAuditor.new
       @light.auditor = @auditor
@@ -372,7 +396,7 @@ describe Light do
     
     it 'should notify the auditor' do
       @light.go @effect
-      within(1, "auditor should have received '#{@error}'") { [@auditor.has_received?(@error), @auditor.errors] }
+      within(1, "auditor should have received ':error - #{@error_message}'") { [@auditor.has_received?(:error, @error_message), @auditor.events] }
     end
   end
   
