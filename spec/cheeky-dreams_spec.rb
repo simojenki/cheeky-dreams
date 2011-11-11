@@ -40,40 +40,40 @@ describe CheekyDreams do
     end
   end
   
-  describe "rgb_for" do
-    it "should return rgb array for simple colours" do
-      rgb_for(:off).should == [0, 0, 0]
-      rgb_for(:red).should == [255, 0, 0]
-      rgb_for(:green).should == [0, 255, 0]
-      rgb_for(:blue).should == [0, 0, 255]
+  describe "rgb" do
+    it "should return rgb array for simple colour symbols" do
+      rgb(:off).should == [0, 0, 0]
+      rgb(:red).should == [255, 0, 0]
+      rgb(:green).should == [0, 255, 0]
+      rgb(:blue).should == [0, 0, 255]
     end
     
     it "should return an rgb array when given one" do
-      rgb_for([11, 34, 111]).should == [11, 34, 111]
+      rgb([11, 34, 111]).should == [11, 34, 111]
     end
 
-    it "should take params and return an rgb array" do
-      rgb_for(11, 34, 111).should == [11, 34, 111]
+    it "should take var args and return an rgb array" do
+      rgb(11, 34, 111).should == [11, 34, 111]
     end
     
     it "should blow up when given meaningless symbol" do
-      lambda { rgb_for(:purple_patch) }.should raise_error "Unknown colour 'purple_patch'"
+      lambda { rgb(:purple_patch) }.should raise_error "Unknown colour 'purple_patch'"
     end
     
     it "should blow up when given array that isnt rgb" do
-      lambda { rgb_for(1, 2) }.should raise_error "Invalid rgb [1, 2]"
-      lambda { rgb_for([1, 2, 3, 4]) }.should raise_error "Invalid rgb [1, 2, 3, 4]"
-      lambda { rgb_for(["a", "b", "c"]) }.should raise_error 'Invalid rgb ["a", "b", "c"]'
+      lambda { rgb(1, 2) }.should raise_error "Invalid rgb [1, 2]"
+      lambda { rgb([1, 2, 3, 4]) }.should raise_error "Invalid rgb [1, 2, 3, 4]"
+      lambda { rgb(["a", "b", "c"]) }.should raise_error 'Invalid rgb ["a", "b", "c"]'
     end
     
     it "should blow up when given invalid rgb values" do
-      lambda { rgb_for([0, 256,   0]) }.should raise_error "Invalid rgb value 0, 256, 0"
-      lambda { rgb_for([-1,  0,   0]) }.should raise_error "Invalid rgb value -1, 0, 0"
-      lambda { rgb_for([0,   0, 256]) }.should raise_error "Invalid rgb value 0, 0, 256"
+      lambda { rgb([0, 256,   0]) }.should raise_error "Invalid rgb value 0, 256, 0"
+      lambda { rgb([-1,  0,   0]) }.should raise_error "Invalid rgb value -1, 0, 0"
+      lambda { rgb([0,   0, 256]) }.should raise_error "Invalid rgb value 0, 0, 256"
     end
     
     it "should floor values" do
-      rgb_for(2.4, 0.1, 255.3).should == [2, 0, 255]
+      rgb(2.4, 0.1, 255.3).should == [2, 0, 255]
     end
   end
 end

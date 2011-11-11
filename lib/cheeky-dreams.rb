@@ -1,11 +1,6 @@
 require 'thread'
 
 module CheekyDreams
-
-  def rgb r, g, b
-    [r, g, b].each { |c| raise "Invalid rgb value #{r}, #{g}, #{b}" if c < 0 || c > 255}
-    [r, g, b]
-  end
   
   def rgb_between a, b, ratio
     [
@@ -32,18 +27,20 @@ module CheekyDreams
     :white => [255,255,255]
   }
   
-  def rgb_for *rgb_args
+  def rgb *rgb_args
     args = rgb_args.flatten
     if args.length == 1 && args[0].is_a?(Symbol)
       raise "Unknown colour '#{args[0]}'" unless COLOURS.has_key?(args[0])
       COLOURS[args[0]]
     elsif (args.length == 3 && args.all? { |c| c.is_a? Numeric })
-      rgb(args[0].floor, args[1].floor, args[2].floor)
+      r, g, b = args[0].floor, args[1].floor, args[2].floor
+      [r, g, b].each { |c| raise "Invalid rgb value #{r}, #{g}, #{b}" if c < 0 || c > 255}
+      [r, g, b]
     else 
       raise "Invalid rgb #{args}"
     end
   end
-  
+
   def stderr_auditor
     Class.new do
       def unhandled_error e
@@ -173,14 +170,14 @@ module CheekyDreams
       end
       
       def next current_colour = nil
-        rgb_for(@block.yield(current_colour))
+        rgb(@block.yield(current_colour))
       end
     end
     
     class Solid < Effect
       def initialize colour
         super 1
-        @rgb = rgb_for(colour)
+        @rgb = rgb(colour)
       end
       
       def next current_colour = nil
@@ -195,14 +192,14 @@ module CheekyDreams
       end
       
       def next current_colour = nil
-        rgb_for(@cycle.next)
+        rgb(@cycle.next)
       end
     end
     
     class Fade < Effect
       def initialize from, to, steps, freq
         super freq
-        @rgb_from, @rgb_to = rgb_for(from), rgb_for(to)
+        @rgb_from, @rgb_to = rgb(from), rgb(to)
         @fade = [@rgb_from]
         (1..(steps-1)).each { |i| @fade << rgb_between(@rgb_from, @rgb_to, i / steps.to_f) }
         @fade << @rgb_to
