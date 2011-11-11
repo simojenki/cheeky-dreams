@@ -279,6 +279,10 @@ class Light
     go Effect::Throb.new freq, amplitude, centre
   end
   
+  def test
+    @driver.test
+  end
+  
   def go effect
     @lock.synchronize {
       case effect
