@@ -109,12 +109,6 @@ module CheekyDreams::Device
     before :each do
       @device_path = "/device"
     end
-    
-    describe "testing the device" do
-      it "should try and make the light light up"
-
-      it "should throw an error when cannot write to the files"
-    end
 
     describe "when cannot write to the files" do
       before :each do
@@ -391,14 +385,6 @@ describe Light do
     @light = Light.new @driver
     @auditor = CollectingAuditor.new
     @light.auditor = @auditor
-  end
-  
-  
-  describe "testing the light" do
-    it "should test the driver" do
-      @driver.should_receive :test
-      @light.test
-    end
   end
   
   describe "unhandled errors" do

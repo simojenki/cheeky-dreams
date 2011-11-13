@@ -16,9 +16,6 @@ class StubDriver
     }
   end
   
-  def test
-  end
-  
   def should_become expected_colour
     rgb = expected_colour.is_a?(Symbol) ? CheekyDreams::COLOURS[expected_colour] : expected_colour
     within 1, "driver to become #{rgb}" do
