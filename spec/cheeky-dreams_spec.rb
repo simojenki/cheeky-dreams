@@ -4,6 +4,25 @@ describe CheekyDreams do
   
   include CheekyDreams
   
+  describe 'sleep_until' do
+    describe 'when until is in the past' do
+      it "should not sleep" do
+        finish = Time.at(0)
+        Time.should_receive(:now).and_return(Time.at(1))
+        sleep_until finish
+      end
+    end
+    
+    describe 'when until is in the future' do
+      it "should sleep for expected time" do
+        finish = Time.at(13.1)
+        Time.should_receive(:now).and_return(Time.at(3.2))
+        should_receive(:sleep).with(9.9)
+        sleep_until finish
+      end
+    end
+  end
+  
   describe "find_dream_cheeky_usb_device" do
     it "should locate the rgb files and return the driver" do
       Dir.should_receive(:glob).with('/sys/devices/**/red').and_return(["/sys/devices/some-crazy-pci-bus-stuff/red"])
@@ -80,8 +99,20 @@ describe CheekyDreams do
   describe 'effects' do
 
     include CheekyDreams
+    
+    describe 'off' do
+      before :each do
+        @off = off
+      end
 
-    describe CheekyDreams::Effects::Solid do
+      it "should return [0,0,0] every time called" do
+        @off.next.should == COLOURS[:off]
+        @off.next.should == COLOURS[:off]
+        @off.next.should == COLOURS[:off]
+      end
+    end
+
+    describe CheekyDreams::Effects::Solid, 'solid' do
       describe "when is symbols" do
         before :each do
           @solid = solid :purple
@@ -188,8 +219,9 @@ describe CheekyDreams do
         end
 
         it "should be able to gradually go to colour when asked" do
-          @fade_to.next([0, 145, 0]).should == [0, 155, 0]
-          @fade_to.next([0, 155, 0]).should == [0, 165, 0]
+          @fade_to.next([0, 145, 0]).should == [0, 145, 0]
+          @fade_to.next([0, 155, 0]).should == [0, 155, 0]
+          @fade_to.next([0, 165, 0]).should == [0, 165, 0]
           @fade_to.next([0, 165, 0]).should == [0, 175, 0]
           @fade_to.next([0, 175, 0]).should == [0, 185, 0]
           @fade_to.next([0, 185, 0]).should == [0, 195, 0]
@@ -212,6 +244,7 @@ describe CheekyDreams do
         end
 
         it "should be able to gradually go to colour when asked" do
+          @fade_to.next([190, 77, 140]).should == [190, 77, 140]
           @fade_to.next([190, 77, 140]).should == [170, 78, 150]
           @fade_to.next([170, 78, 150]).should == [150, 79, 160]
           @fade_to.next([150, 79, 160]).should == [130, 80, 170]

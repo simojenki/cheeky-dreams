@@ -18,9 +18,9 @@ class StubDriver
   
   def should_become expected_colour
     rgb = expected_colour.is_a?(Symbol) ? CheekyDreams::COLOURS[expected_colour] : expected_colour
-    within 1, "driver to become #{rgb}" do
+    within 5, "driver to become #{rgb}" do
       @lock.synchronize {
-        [rgb == @colour, @colour]
+        [@colours.include?(rgb), "current colour = #{@colour}, has been #{@colours}"]
       }
     end
   end

@@ -2,19 +2,6 @@ require 'thread'
 
 module CheekyDreams
   
-  def rgb_between a, b, ratio
-    [
-      position_between(a[0], b[0], ratio),
-      position_between(a[1], b[1], ratio),
-      position_between(a[2], b[2], ratio),
-      ]
-  end
-  
-  def position_between a, b, ratio
-    return b if ratio >= 1.0
-    (((b - a) * ratio) + a).floor
-  end
-
   COLOURS = { 
     :off => [0, 0, 0],
     :red => [255, 0, 0],
@@ -27,6 +14,23 @@ module CheekyDreams
     :white => [255,255,255]
   }
   
+  def rgb_between a, b, ratio
+    [
+      position_between(a[0], b[0], ratio),
+      position_between(a[1], b[1], ratio),
+      position_between(a[2], b[2], ratio),
+      ]
+  end
+  
+  def sleep_until time
+    zzz_time = time - Time.now
+    sleep(zzz_time) if zzz_time > 0
+  end
+  
+  def position_between a, b, ratio
+    return b if ratio >= 1.0
+    (((b - a) * ratio) + a).floor
+  end
 
   def rgb *rgb_args
     raise 'Cannot give rgb for nil!' unless rgb_args
@@ -82,6 +86,10 @@ module CheekyDreams
   
   def find_dream_cheeky_usb_device
     Dev::DreamCheeky.new(File.dirname(Dir.glob('/sys/devices/**/red').first))
+  end
+
+  def off
+    solid :off
   end
    
   def solid colour
@@ -286,10 +294,7 @@ module CheekyDreams
       end
       
       def next current_colour
-        unless @fade
-          @fade = Fade.new(current_colour, @to, @steps, freq)
-          @fade.next current_colour
-        end
+        @fade = Fade.new(current_colour, @to, @steps, freq) unless @fade        
         @fade.next current_colour
       end
     end
@@ -300,10 +305,12 @@ class Light
   
   attr_accessor :freq, :auditor
   
+  include CheekyDreams
+  
   def initialize driver
     @driver, @freq, @auditor = driver, 100, CheekyDreams::Dev::Null.new
     @lock = Mutex.new
-    @effect = nil
+    @effect = CheekyDreams::Effects::Solid.new([0,0,0])
     @on = false
   end
   
@@ -329,28 +336,31 @@ class Light
     Thread.new do
       current_effect = nil
       last_colour = [0,0,0]
-      next_colour_time = nil
+      freq = nil
+      # next_colour_time = nil
       while @on
+        start = Time.now
+        @lock.synchronize {
+          # if @effect && current_effect != @effect
+            current_effect = @effect
+            # next_colour_time = Time.at(0)
+          # end
+        }
         begin
-          @lock.synchronize {
-            if @effect && current_effect != @effect
-              current_effect = @effect
-              next_colour_time = Time.at(0)
-            end
-          }
-          if current_effect
-            if Time.now > next_colour_time
-              new_colour = current_effect.next(last_colour)
+          # if current_effect
+            # if Time.now > next_colour_time
+              new_colour = current_effect.next last_colour
               @driver.go new_colour
               @auditor.audit :colour_change, new_colour.to_s
               last_colour = new_colour
-              next_colour_time = Time.now + (1 / current_effect.freq.to_f)
-            end
-          end
+              # next_colour_time = Time.now + (1 / current_effect.freq.to_f)
+            # end
+          # end
         rescue => e
           auditor.audit :error, e.message
         end
-        sleep (1 / freq.to_f)
+        sleep_until (start + (1 / current_effect.freq.to_f))
+        # sleep (1 / freq.to_f)
       end
     end
   end
