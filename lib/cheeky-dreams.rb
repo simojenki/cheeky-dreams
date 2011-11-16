@@ -33,6 +33,7 @@ module CheekyDreams
   }
   
   def rgb_for colour
+  	raise 'Cannot give rgb for nil!' unless colour
     case colour
     when Symbol
       raise "Unknown colour '#{colour}'" unless COLOURS.has_key?(colour)
@@ -62,11 +63,7 @@ module CheekyDreams
   end
   
   def stdout_driver
-    Class.new do
-      def go rgb
-        puts rgb
-      end
-    end.new
+  	Device::IO.new
   end
   
   def ansi_driver
@@ -82,8 +79,19 @@ module CheekyDreams
   def find_dream_cheeky_usb_device
     Device::DreamCheeky.new(File.dirname(Dir.glob('/sys/devices/**/red').first))
   end
-  
+   
   module Device
+    class IO
+    	def initialize io = $stdout
+    		@io, @last = io, nil
+    	end
+    	
+    	def go rgb
+    		@io.puts "[#{rgb.join(',')}]" unless rgb == @last
+    		@last = rgb
+    	end
+    end
+    
     class DreamCheeky
       attr_reader :path
       def initialize path, max_threshold = 50
@@ -166,6 +174,21 @@ module CheekyDreams
       end
     end
 
+    class Crazy < Effect 
+			def initialize freq, new_effect_freq
+				super freq
+				@new_effect_freq = new_effect_freq
+        @count, @effect = 0, nil
+			end
+
+			def next current_colour
+				if @count % @new_effect_freq == 0
+					@effect = FadeTo.new([rand(255), rand(255), rand(255)], @new_effect_freq, freq)
+			  end
+				@count += 1
+				@effect.next current_colour
+			end
+    end
     
     class Func < Effect
       def initialize freq, &block
@@ -249,6 +272,10 @@ class Light
     @on = false
   end
   
+  def crazy freq = 1, new_effect_freq = 2
+  	go(Effect::Crazy.new(freq, new_effect_freq))
+  end
+  
   def cycle colours, freq = 1
     go(Effect::Cycle.new(colours, freq))
   end
@@ -294,7 +321,7 @@ class Light
     @on = true
     Thread.new do
       current_effect = nil
-      last_colour = nil
+      last_colour = [0,0,0]
       next_colour_time = nil
       while @on
         begin

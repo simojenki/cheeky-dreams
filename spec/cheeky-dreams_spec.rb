@@ -74,6 +74,26 @@ module CheekyDreams::Device
   
   include CheekyDreams
   
+  describe IO do
+  	before :each do
+  		@io = StringIO.new
+  		@device = IO.new @io
+  	end
+  	
+  	it 'should write colour' do
+  		@device.go [1, 5, 6]
+  		@io.string.should == "[1,5,6]\n"
+  	end
+  	
+   	it 'should write colour only once when doesnt change' do
+  		@device.go [1, 5, 6]
+  		@device.go [4, 4, 4]
+  		@device.go [4, 4, 4]
+  		@device.go [2, 3, 4]
+  		@io.string.should == "[1,5,6]\n[4,4,4]\n[2,3,4]\n"
+  	end
+	end
+  
   describe DreamCheeky do
     before :each do
       @device_path = "/device"
@@ -364,7 +384,7 @@ describe Light do
     
     it 'should notify the auditor' do
       @light.go @effect
-      within(1, "auditor should have received '#{@error}'") { [@auditor.has_received?(@error), @auditor.errors] }
+      within(2, "auditor should have received '#{@error}'") { [@auditor.has_received?(@error), @auditor.errors] }
     end
   end
   
