@@ -63,11 +63,11 @@ module CheekyDreams
   end
   
   def dev_null
-    Device::Null.new
+    Dev::Null.new
   end
   
   def stdout_driver
-  	Device::IO.new
+  	Dev::IO.new
   end
   
   def ansi_driver
@@ -81,7 +81,7 @@ module CheekyDreams
   end
   
   def find_dream_cheeky_usb_device
-    Device::DreamCheeky.new(File.dirname(Dir.glob('/sys/devices/**/red').first))
+    Dev::DreamCheeky.new(File.dirname(Dir.glob('/sys/devices/**/red').first))
   end
    
   def solid colour
@@ -112,7 +112,7 @@ module CheekyDreams
   	Effects::Crazy.new(freq, new_effect_freq)
   end
    
-  module Device
+  module Dev
     class Null
       def audit type, message
       end
@@ -301,7 +301,7 @@ class Light
   attr_accessor :freq, :auditor
   
   def initialize driver
-    @driver, @freq, @auditor = driver, 100, CheekyDreams::Device::Null.new
+    @driver, @freq, @auditor = driver, 100, CheekyDreams::Dev::Null.new
     @lock = Mutex.new
     @effect = nil
     @on = false

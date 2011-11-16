@@ -300,7 +300,7 @@ module CheekyDreams
   end
 end
 
-module CheekyDreams::Device
+module CheekyDreams::Dev
   
   include CheekyDreams
   
