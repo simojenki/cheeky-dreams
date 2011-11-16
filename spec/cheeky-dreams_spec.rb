@@ -216,16 +216,16 @@ module CheekyDreams::Effect
     end
     
     it "should cycle through the colours as rgb" do
-      @cycle.next.should == [255,   0,  0]
-      @cycle.next.should == [  0,   0,255]
+      @cycle.next.should == [255,   0,   0]
+      @cycle.next.should == [  0,   0, 255]
       @cycle.next.should == [211, 192, 101]
       
-      @cycle.next.should == [255,   0,  0]
-      @cycle.next.should == [  0,   0,255]
+      @cycle.next.should == [255,   0,   0]
+      @cycle.next.should == [  0,   0, 255]
       @cycle.next.should == [211, 192, 101]
       
-      @cycle.next.should == [255,   0,  0]
-      @cycle.next.should == [  0,   0,255]
+      @cycle.next.should == [255,   0,   0]
+      @cycle.next.should == [  0,   0, 255]
       @cycle.next.should == [211, 192, 101]
     end
   end
