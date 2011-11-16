@@ -76,24 +76,35 @@ describe CheekyDreams do
     end
     
     it "should blow up when given meaningless symbol" do
-      lambda { rgb(:purple_patch) }.should raise_error "Unknown colour 'purple_patch'"
+      proc { rgb(:purple_patch) }.should raise_error "Unknown colour 'purple_patch'"
     end
     
     it "should blow up when given array that isnt rgb" do
-      lambda { rgb(1, 2) }.should raise_error "Invalid rgb [1, 2]"
-      lambda { rgb([1, 2, 3, 4]) }.should raise_error "Invalid rgb [1, 2, 3, 4]"
-      lambda { rgb(["a", "b", "c"]) }.should raise_error 'Invalid rgb ["a", "b", "c"]'
+      proc { rgb(1, 2) }.should raise_error "Invalid rgb [1, 2]"
+      proc { rgb([1, 2, 3, 4]) }.should raise_error "Invalid rgb [1, 2, 3, 4]"
+      proc { rgb(["a", "b", "c"]) }.should raise_error 'Invalid rgb ["a", "b", "c"]'
     end
     
     it "should blow up when given invalid rgb values" do
-      lambda { rgb([0, 256,   0]) }.should raise_error "Invalid rgb value 0, 256, 0"
-      lambda { rgb([-1,  0,   0]) }.should raise_error "Invalid rgb value -1, 0, 0"
-      lambda { rgb([0,   0, 256]) }.should raise_error "Invalid rgb value 0, 0, 256"
+      proc { rgb([0, 256,   0]) }.should raise_error "Invalid rgb value 0, 256, 0"
+      proc { rgb([-1,  0,   0]) }.should raise_error "Invalid rgb value -1, 0, 0"
+      proc { rgb([0,   0, 256]) }.should raise_error "Invalid rgb value 0, 0, 256"
     end
     
     it "should floor values" do
       rgb(2.4, 0.1, 255.3).should == [2, 0, 255]
     end
+    
+    describe "creating with values out of range" do
+      it "should blow up" do
+        proc {  rgb(-1, 0, 0) }.should raise_error "Invalid rgb value -1, 0, 0"
+        proc {  rgb(256, 0, 0) }.should raise_error "Invalid rgb value 256, 0, 0"
+        proc {  rgb(0, -1, 0) }.should raise_error "Invalid rgb value 0, -1, 0"
+        proc {  rgb(0, 256, 0) }.should raise_error "Invalid rgb value 0, 256, 0"
+        proc {  rgb(0, 0, -1) }.should raise_error "Invalid rgb value 0, 0, -1"
+        proc {  rgb(0, 0, 256) }.should raise_error "Invalid rgb value 0, 0, 256"
+      end
+    end    
   end
   
   describe 'effects' do
@@ -625,21 +636,6 @@ describe Light do
       @driver.should_become [101, 0, 0]
       @light.go :red
       @driver.should_become [255, 0, 0]
-    end
-  end
-end
-
-describe "RGB" do
-  include CheekyDreams
-  
-  describe "creating with values out of range" do
-    it "should blow up" do
-      lambda {  rgb(-1, 0, 0) }.should raise_error "Invalid rgb value -1, 0, 0"
-      lambda {  rgb(256, 0, 0) }.should raise_error "Invalid rgb value 256, 0, 0"
-      lambda {  rgb(0, -1, 0) }.should raise_error "Invalid rgb value 0, -1, 0"
-      lambda {  rgb(0, 256, 0) }.should raise_error "Invalid rgb value 0, 256, 0"
-      lambda {  rgb(0, 0, -1) }.should raise_error "Invalid rgb value 0, 0, -1"
-      lambda {  rgb(0, 0, 256) }.should raise_error "Invalid rgb value 0, 0, 256"
     end
   end
 end
