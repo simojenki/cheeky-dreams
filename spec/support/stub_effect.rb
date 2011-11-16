@@ -1,5 +1,5 @@
 
-class StubEffect < CheekyDreams::Effect::Effect
+class StubEffect < CheekyDreams::Effects::Effect
   
   attr_reader :freq, :asked_for_colour_count
   

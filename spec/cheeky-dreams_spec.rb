@@ -76,6 +76,205 @@ describe CheekyDreams do
       rgb(2.4, 0.1, 255.3).should == [2, 0, 255]
     end
   end
+  
+  describe 'effects' do
+
+    include CheekyDreams
+
+    describe CheekyDreams::Effects::Solid do
+      describe "when is symbols" do
+        before :each do
+          @solid = solid :purple
+        end
+
+        it "should return rgb every time called" do
+          @solid.next.should == COLOURS[:purple]
+          @solid.next.should == COLOURS[:purple]
+          @solid.next.should == COLOURS[:purple]
+        end
+      end
+
+      describe "when is random rgb value" do
+        before :each do
+          @solid = solid [123, 123, 123]
+        end
+
+        it "should return rgb every time called" do
+          @solid.next.should == [123, 123, 123]
+          @solid.next.should == [123, 123, 123]
+          @solid.next.should == [123, 123, 123]
+        end
+      end
+    end
+
+    describe CheekyDreams::Effects::Cycle do
+      before :each do
+        @cycle = cycle [:red, :blue, [211, 192, 101]], 22
+      end
+
+      it "should have a frequency" do
+        @cycle.freq.should == 22
+      end
+
+      it "should cycle through the colours as rgb" do
+        @cycle.next.should == [255,   0,   0]
+        @cycle.next.should == [  0,   0, 255]
+        @cycle.next.should == [211, 192, 101]
+
+        @cycle.next.should == [255,   0,   0]
+        @cycle.next.should == [  0,   0, 255]
+        @cycle.next.should == [211, 192, 101]
+
+        @cycle.next.should == [255,   0,   0]
+        @cycle.next.should == [  0,   0, 255]
+        @cycle.next.should == [211, 192, 101]
+      end
+    end
+
+    describe CheekyDreams::Effects::Fade do
+      describe "fading between two symbols" do
+        before :each do
+          @fade = fade :blue, :green, 1, 5
+        end
+
+        it "should have a freq of 2" do
+          @fade.freq.should == 5
+        end
+
+        it "should be able to provide the steps when asked" do
+          @fade.next.should == [  0,   0, 255]
+          @fade.next.should == [  0, 255,   0]
+          @fade.next.should == [  0, 255,   0]
+          @fade.next.should == [  0, 255,   0]
+        end
+      end
+
+      describe "fading between two arbitary rgb values" do
+        before :each do
+          @fade = fade [100, 100, 100], [110, 90, 0], 10, 2
+        end
+
+        it "should have a freq of 2" do
+          @fade.freq.should == 2
+        end
+
+        it "should be able to provide the steps when asked" do
+          @fade.next.should == [100, 100, 100]
+          @fade.next.should == [101,  99,  90]
+          @fade.next.should == [102,  98,  80]
+          @fade.next.should == [103,  97,  70]
+          @fade.next.should == [104,  96,  60]
+          @fade.next.should == [105,  95,  50]
+          @fade.next.should == [106,  94,  40]
+          @fade.next.should == [107,  93,  30]
+          @fade.next.should == [108,  92,  20]
+          @fade.next.should == [109,  91,  10]
+          @fade.next.should == [110,  90,   0]
+          # and then continue to provide the same colour
+          @fade.next.should == [110,  90,   0]
+          @fade.next.should == [110,  90,   0]
+        end  
+      end
+    end
+
+    describe CheekyDreams::Effects::FadeTo do
+      describe "fading to a symbol" do
+        before :each do
+          @fade_to = fade_to :green, 11, 2
+        end
+
+        it "should have a freq of 2" do
+          @fade_to.freq.should == 2
+        end
+
+        it "should be able to gradually go to colour when asked" do
+          @fade_to.next([0, 145, 0]).should == [0, 155, 0]
+          @fade_to.next([0, 155, 0]).should == [0, 165, 0]
+          @fade_to.next([0, 165, 0]).should == [0, 175, 0]
+          @fade_to.next([0, 175, 0]).should == [0, 185, 0]
+          @fade_to.next([0, 185, 0]).should == [0, 195, 0]
+          @fade_to.next([0, 195, 0]).should == [0, 205, 0]
+          @fade_to.next([0, 205, 0]).should == [0, 215, 0]
+          @fade_to.next([0, 215, 0]).should == [0, 225, 0]
+          @fade_to.next([0, 225, 0]).should == [0, 235, 0]
+          @fade_to.next([0, 235, 0]).should == [0, 245, 0]
+          @fade_to.next([0, 245, 0]).should == [0, 255, 0]
+        end
+      end
+
+      describe "fading to a random rgb" do
+        before :each do
+          @fade_to = fade_to [130, 80, 170], 3, 20
+        end
+
+        it "should have a freq of 20" do
+          @fade_to.freq.should == 20
+        end
+
+        it "should be able to gradually go to colour when asked" do
+          @fade_to.next([190, 77, 140]).should == [170, 78, 150]
+          @fade_to.next([170, 78, 150]).should == [150, 79, 160]
+          @fade_to.next([150, 79, 160]).should == [130, 80, 170]
+        end
+      end
+    end
+
+    describe CheekyDreams::Effects::Func do
+      describe "when the block return rgb values" do
+        before :each do
+          @func = func(22) { |current_colour| [current_colour[0] + 1, current_colour[1] + 1, current_colour[2] + 1] }
+        end
+
+        it "should have a freq of 22" do
+          @func.freq.should == 22
+        end
+
+        it "should return the given rgb plus 1 to each of r, g, and b" do
+          @func.next([2, 5, 6]).should == [3, 6, 7]
+        end
+      end
+
+      describe "when the block return symbol" do
+        before :each do
+          @func = func(22) { |current_colour| :purple }
+        end
+
+        it "should return the rgb for the symbol" do
+          @func.next([2, 5, 6]).should == COLOURS[:purple]
+        end
+      end
+    end
+
+    describe CheekyDreams::Effects::Throb do
+      before :each do
+        @throb = throb 10, [100, 100, 100], [250, 50, 0]
+      end
+
+      it "should have r_amp" do
+        @throb.r_amp.should == 75
+      end
+
+      it "should have r_centre" do
+        @throb.r_centre.should == 175
+      end
+
+      it "should have g_amp" do
+        @throb.g_amp.should == 25
+      end
+
+      it "should have g_centre" do
+        @throb.g_centre.should == 75
+      end
+
+      it "should have b_amp" do
+        @throb.b_amp.should == 50
+      end
+
+      it "should have b_centre" do
+        @throb.b_centre.should == 50
+      end
+    end
+  end
 end
 
 module CheekyDreams
@@ -196,205 +395,6 @@ module CheekyDreams::Device
   end
 end
 
-module CheekyDreams::Effect
-  
-  include CheekyDreams
-  
-  describe Solid do
-    describe "when is symbols" do
-      before :each do
-        @solid = Solid.new :purple
-      end
-
-      it "should return rgb every time called" do
-        @solid.next.should == COLOURS[:purple]
-        @solid.next.should == COLOURS[:purple]
-        @solid.next.should == COLOURS[:purple]
-      end
-    end
-    
-    describe "when is random rgb value" do
-      before :each do
-        @solid = Solid.new [123, 123, 123]
-      end
-
-      it "should return rgb every time called" do
-        @solid.next.should == [123, 123, 123]
-        @solid.next.should == [123, 123, 123]
-        @solid.next.should == [123, 123, 123]
-      end
-    end
-  end
-  
-  describe Cycle do
-    before :each do
-      @cycle = Cycle.new [:red, :blue, [211, 192, 101]], 22
-    end
-    
-    it "should have a frequency" do
-      @cycle.freq.should == 22
-    end
-    
-    it "should cycle through the colours as rgb" do
-      @cycle.next.should == [255,   0,   0]
-      @cycle.next.should == [  0,   0, 255]
-      @cycle.next.should == [211, 192, 101]
-      
-      @cycle.next.should == [255,   0,   0]
-      @cycle.next.should == [  0,   0, 255]
-      @cycle.next.should == [211, 192, 101]
-      
-      @cycle.next.should == [255,   0,   0]
-      @cycle.next.should == [  0,   0, 255]
-      @cycle.next.should == [211, 192, 101]
-    end
-  end
-  
-  describe Fade do
-    describe "fading between two symbols" do
-      before :each do
-        @fade = Fade.new :blue, :green, 1, 5
-      end
-
-      it "should have a freq of 2" do
-        @fade.freq.should == 5
-      end
-
-      it "should be able to provide the steps when asked" do
-        @fade.next.should == [  0,   0, 255]
-        @fade.next.should == [  0, 255,   0]
-        @fade.next.should == [  0, 255,   0]
-        @fade.next.should == [  0, 255,   0]
-      end
-    end
-    
-    describe "fading between two arbitary rgb values" do
-      before :each do
-        @fade = Fade.new [100, 100, 100], [110, 90, 0], 10, 2
-      end
-
-      it "should have a freq of 2" do
-        @fade.freq.should == 2
-      end
-
-      it "should be able to provide the steps when asked" do
-        @fade.next.should == [100, 100, 100]
-        @fade.next.should == [101,  99,  90]
-        @fade.next.should == [102,  98,  80]
-        @fade.next.should == [103,  97,  70]
-        @fade.next.should == [104,  96,  60]
-        @fade.next.should == [105,  95,  50]
-        @fade.next.should == [106,  94,  40]
-        @fade.next.should == [107,  93,  30]
-        @fade.next.should == [108,  92,  20]
-        @fade.next.should == [109,  91,  10]
-        @fade.next.should == [110,  90,   0]
-        # and then continue to provide the same colour
-        @fade.next.should == [110,  90,   0]
-        @fade.next.should == [110,  90,   0]
-      end  
-    end
-  end
-  
-  describe FadeTo do
-    describe "fading to a symbol" do
-      before :each do
-        @fade_to = FadeTo.new :green, 11, 2
-      end
-      
-      it "should have a freq of 2" do
-        @fade_to.freq.should == 2
-      end
-      
-      it "should be able to gradually go to colour when asked" do
-        @fade_to.next([0, 145, 0]).should == [0, 155, 0]
-        @fade_to.next([0, 155, 0]).should == [0, 165, 0]
-        @fade_to.next([0, 165, 0]).should == [0, 175, 0]
-        @fade_to.next([0, 175, 0]).should == [0, 185, 0]
-        @fade_to.next([0, 185, 0]).should == [0, 195, 0]
-        @fade_to.next([0, 195, 0]).should == [0, 205, 0]
-        @fade_to.next([0, 205, 0]).should == [0, 215, 0]
-        @fade_to.next([0, 215, 0]).should == [0, 225, 0]
-        @fade_to.next([0, 225, 0]).should == [0, 235, 0]
-        @fade_to.next([0, 235, 0]).should == [0, 245, 0]
-        @fade_to.next([0, 245, 0]).should == [0, 255, 0]
-      end
-    end
-    
-    describe "fading to a random rgb" do
-      before :each do
-        @fade_to = FadeTo.new [130, 80, 170], 3, 20
-      end
-      
-      it "should have a freq of 20" do
-        @fade_to.freq.should == 20
-      end
-      
-      it "should be able to gradually go to colour when asked" do
-        @fade_to.next([190, 77, 140]).should == [170, 78, 150]
-        @fade_to.next([170, 78, 150]).should == [150, 79, 160]
-        @fade_to.next([150, 79, 160]).should == [130, 80, 170]
-      end
-    end
-  end
-  
-  describe Func do
-    describe "when the block return rgb values" do
-      before :each do
-        @func = Func.new(22) { |current_colour| [current_colour[0] + 1, current_colour[1] + 1, current_colour[2] + 1] }
-      end
-      
-      it "should have a freq of 22" do
-        @func.freq.should == 22
-      end
-      
-      it "should return the given rgb plus 1 to each of r, g, and b" do
-        @func.next([2, 5, 6]).should == [3, 6, 7]
-      end
-    end
-    
-    describe "when the block return symbol" do
-      before :each do
-        @func = Func.new(22) { |current_colour| :purple }
-      end
-      
-      it "should return the rgb for the symbol" do
-        @func.next([2, 5, 6]).should == COLOURS[:purple]
-      end
-    end
-  end
-  
-  describe Throb do
-    before :each do
-      @throb = Throb.new 10, [100, 100, 100], [250, 50, 0]
-    end
-    
-    it "should have r_amp" do
-      @throb.r_amp.should == 75
-    end
-    
-    it "should have r_centre" do
-      @throb.r_centre.should == 175
-    end
-    
-    it "should have g_amp" do
-      @throb.g_amp.should == 25
-    end
-    
-    it "should have g_centre" do
-      @throb.g_centre.should == 75
-    end
-    
-    it "should have b_amp" do
-      @throb.b_amp.should == 50
-    end
-    
-    it "should have b_centre" do
-      @throb.b_centre.should == 50
-    end
-  end
-end
-
 describe Light do
   
   include CheekyDreams
@@ -464,6 +464,9 @@ describe Light do
   end
   
   describe "changing colour" do
+    
+    include CheekyDreams
+    
     it "should tell the auditor" do
       @light.go [22, 11, 33]
       within(1, "auditor should have received ':colour_change - [22, 11, 33]'") { [@auditor.has_received?(:colour_change, "[22, 11, 33]"), @auditor.events] }
@@ -499,7 +502,7 @@ describe Light do
     end
     
     it "should be able to cycle between colours when specified as rgb" do
-      @light.cycle([[255, 255, 255], [200, 200, 200], [100, 100, 100]], 10)
+      @light.go cycle([[255, 255, 255], [200, 200, 200], [100, 100, 100]], 10)
       @driver.should_become [255, 255, 255]
       @driver.should_become [200, 200, 200]
       @driver.should_become [100, 100, 100]
@@ -508,7 +511,7 @@ describe Light do
     end
     
     it "should be able to cycle between colours when specified as symbols" do
-      @light.cycle([:red, :green, :blue], 10)
+      @light.go cycle([:red, :green, :blue], 10)
       @driver.should_become :red
       @driver.should_become :green
       @driver.should_become :blue
@@ -517,7 +520,7 @@ describe Light do
     end
     
     it "should be able to fade from one colour to another" do
-      @light.fade([100, 100, 0], [105, 95, 0], 5, 2)
+      @light.go fade([100, 100, 0], [105, 95, 0], 5, 2)
       @driver.should_become [101, 99, 0]
       @driver.should_become [102, 98, 0]      
       @driver.should_become [103, 97, 0]      
@@ -529,7 +532,7 @@ describe Light do
       @light.go [100, 100, 0]
       @driver.should_become [100, 100, 0]
       
-      @light.fade_to([105, 95, 0], 5, 2)
+      @light.go fade_to([105, 95, 0], 5, 2)
       @driver.should_become [101, 99, 0]
       @driver.should_become [102, 98, 0]      
       @driver.should_become [103, 97, 0]      
@@ -539,7 +542,7 @@ describe Light do
     
     it "should be able to go different colours based on a function" do
       cycle = [:blue, :red, :green, :purple, :grey, :aqua].cycle
-      @light.func(10) { cycle.next }
+      @light.go func(10) { cycle.next }
       @driver.should_become :blue
       @driver.should_become :red
       @driver.should_become :green

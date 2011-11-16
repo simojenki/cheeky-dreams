@@ -62,11 +62,8 @@ module CheekyDreams
     StdIOAuditor.new(out, err)
   end
   
-  def dev_null_auditor
-    Class.new do
-      def unhandled_error e
-      end
-    end.new
+  def dev_null
+    Device::Null.new
   end
   
   def stdout_driver
@@ -87,7 +84,40 @@ module CheekyDreams
     Device::DreamCheeky.new(File.dirname(Dir.glob('/sys/devices/**/red').first))
   end
    
+  def solid colour
+    Effects::Solid.new(colour)
+  end
+
+  def cycle colours, freq = 1
+    Effects::Cycle.new(colours, freq)
+  end
+
+  def fade from, to, steps = 10, freq = 1
+    Effects::Fade.new from, to, steps, freq
+  end
+
+  def fade_to to, steps = 10, freq = 1
+    Effects::FadeTo.new to, steps, freq
+  end
+
+  def func freq = 1, &block
+    Effects::Func.new freq, &block
+  end
+
+  def throb freq, amplitude, centre
+    Effects::Throb.new freq, amplitude, centre
+  end
+  
+  def crazy freq = 1, new_effect_freq = 2
+  	Effects::Crazy.new(freq, new_effect_freq)
+  end
+   
   module Device
+    class Null
+      def audit type, message
+      end
+    end
+    
     class IO
     	def initialize io = $stdout
     		@io, @last = io, nil
@@ -120,7 +150,7 @@ module CheekyDreams
     end
   end
   
-  module Effect
+  module Effects
     class Effect
       include CheekyDreams    
       include Math
@@ -268,53 +298,23 @@ end
 
 class Light
   
-  include CheekyDreams
-  
   attr_accessor :freq, :auditor
   
   def initialize driver
-    @driver, @freq, @auditor = driver, 100, dev_null_auditor
+    @driver, @freq, @auditor = driver, 100, CheekyDreams::Device::Null.new
     @lock = Mutex.new
     @effect = nil
     @on = false
-  end
-  
-  def crazy freq = 1, new_effect_freq = 2
-  	go(Effect::Crazy.new(freq, new_effect_freq))
-  end
-  
-  def cycle colours, freq = 1
-    go(Effect::Cycle.new(colours, freq))
-  end
-  
-  def solid colour
-    go(Effect::Solid.new(colour))
-  end
-  
-  def fade from, to, steps = 10, freq = 1
-    go Effect::Fade.new from, to, steps, freq
-  end
-
-  def fade_to to, steps = 10, freq = 1
-    go Effect::FadeTo.new to, steps, freq
-  end
-  
-  def func freq = 1, &block
-    go Effect::Func.new freq, &block
-  end
-  
-  def throb freq, amplitude, centre
-    go Effect::Throb.new freq, amplitude, centre
   end
   
   def go effect
     @lock.synchronize {
       case effect
         when Symbol
-          @effect = Effect::Solid.new(effect)
+          @effect = CheekyDreams::Effects::Solid.new(effect)
         when Array
-          @effect = Effect::Solid.new(effect)
-        when Effect::Effect
+          @effect = CheekyDreams::Effects::Solid.new(effect)
+        when CheekyDreams::Effects::Effect
           @effect = effect
         else
           raise "Im sorry dave, I'm afraid I can't do that. #{effect}"
