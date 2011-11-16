@@ -47,6 +47,16 @@ module CheekyDreams
     end
   end
 
+  class FilteringAuditor
+    def initialize auditor, including
+      @auditor, @including = auditor, Set.new(including)
+    end
+    
+    def audit type, message
+      @auditor.audit(type, message) if @including.include?(type)
+    end
+  end
+
   class StdIOAuditor
     def initialize out = STDOUT, err = STDERR
       @out, @err = out, err
@@ -62,12 +72,16 @@ module CheekyDreams
     end
   end
   
+  def filtering including, auditor
+    FilteringAuditor.new auditor, including
+  end
+  
   def audit_to *auditors
-    CompositeAuditor.new auditors
+    CompositeAuditor.new *auditors
   end
   
   class CompositeAuditor
-    def initialize auditors
+    def initialize *auditors
       @auditors = auditors
     end
     
@@ -262,7 +276,7 @@ module CheekyDreams
     
     class Solid < Effect
       def initialize colour
-        super 1
+        super 0.1
         @rgb = rgb(colour)
       end
       
@@ -331,23 +345,27 @@ class Light
     @lock.synchronize {
       case effect
         when Symbol
-          @effect = CheekyDreams::Effects::Solid.new(effect)
+          @effect = solid(effect)
         when Array
-          @effect = CheekyDreams::Effects::Solid.new(effect)
+          @effect = solid(effect)
         when CheekyDreams::Effects::Effect
           @effect = effect
         else
           raise "Im sorry dave, I'm afraid I can't do that. #{effect}"
       end
-      @wake_up.signal
     }
+    wakeup
     turn_on unless @on    
+  end
+  
+  def off
+    @on = false
   end
   
   private
   def turn_on
     @on, current_effect = true, nil
-    Thread.new do
+    @run_thread = Thread.new do
       last_colour = COLOURS[:off]
       while @on
         start = Time.now
@@ -360,16 +378,19 @@ class Light
         rescue => e
           auditor.audit :error, e.message
         end
-        do_in (1 / current_effect.freq.to_f) do
-          @lock.sychronize { @wake_up.signal }
-        end
-        @lock.sychronize { @wake_up.wait }
-      end
+        sleep_until (start + (1 / current_effect.freq.to_f))
+      end      
     end
+  end
+  
+  def wakeup
+    @run_thread.run if @run_thread
   end
   
   def do_in seconds, &to_do
     sleep seconds if seconds > 0
-    Thread.new to_do
+    Thread.new do
+      to_do.yield
+    end 
   end
 end

@@ -8,7 +8,7 @@ class StubEffect < CheekyDreams::Effects::Effect
     if block
       @block = block
     else
-      @block = lambda { [0,0,0] }
+      @block = proc { [0,0,0] }
     end
   end
   

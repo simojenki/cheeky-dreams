@@ -311,6 +311,36 @@ describe CheekyDreams do
 end
 
 module CheekyDreams
+  describe FilteringAuditor do
+    before :each do
+      @delegate = mock('delegate auditor')
+      @auditor = FilteringAuditor.new @delegate, [:error]
+    end
+    
+    it 'should allow through audits of type :error' do
+      @delegate.should_receive(:audit).with(:error, 'here')
+      @auditor.audit :error, 'here'
+    end
+    
+    it 'should not allow through other random audits' do
+      @auditor.audit :error1, 'here'
+      @auditor.audit :error2, 'here'
+    end
+  end
+  
+  describe CompositeAuditor do
+    before :each do
+      @auditor1, @auditor2 = mock('auditor1'), mock('auditor2')
+      @auditor = CompositeAuditor.new @auditor1, @auditor2
+    end
+    
+    it 'should notify both auditors' do
+      @auditor1.should_receive(:audit).with(:bob, 'marley')
+      @auditor2.should_receive(:audit).with(:bob, 'marley')
+      @auditor.audit :bob, 'marley'
+    end
+  end
+  
   describe StdIOAuditor do
     before :each do
       @out, @err = StringIO.new, StringIO.new
@@ -436,8 +466,13 @@ describe Light do
   before :each do
     @driver = StubDriver.new
     @light = Light.new @driver
-    @auditor = CollectingAuditor.new
-    @light.auditor = @auditor
+    @collecting_auditor = CollectingAuditor.new
+    @audit_errors = filtering([:error], stdio_audit)
+    @light.auditor = audit_to @audit_errors, @collecting_auditor
+  end
+  
+  after :each do
+    @light.off
   end
   
   describe "unhandled errors" do
@@ -445,11 +480,12 @@ describe Light do
       @error_message = "On purpose error"
       @error = RuntimeError.new @error_message
       @effect = StubEffect.new(20) { raise @error }
+      @light.auditor = @collecting_auditor
     end
     
     it 'should notify the auditor' do
       @light.go @effect
-      within(2, "auditor should have received ':error - #{@error_message}'") { [@auditor.has_received?(:error, @error_message), @auditor.events] }
+      within(2, "auditor should have received ':error - #{@error_message}'") { [@collecting_auditor.has_received?(:error, @error_message), @collecting_auditor.events] }
     end
   end
   
@@ -502,7 +538,7 @@ describe Light do
     
     it "should tell the auditor" do
       @light.go [22, 11, 33]
-      within(1, "auditor should have received ':colour_change - [22, 11, 33]'") { [@auditor.has_received?(:colour_change, "[22, 11, 33]"), @auditor.events] }
+      within(1, "auditor should have received ':colour_change - [22, 11, 33]'") { [@collecting_auditor.has_received?(:colour_change, "[22, 11, 33]"), @collecting_auditor.events] }
     end
     
     it "should go red" do
@@ -521,7 +557,7 @@ describe Light do
     end
     
     it "should blow up if you give it a symbol it doesnt understand" do
-      lambda { @light.go :pink_with_polka_dots }.should raise_error "Unknown colour 'pink_with_polka_dots'"
+      proc { @light.go :pink_with_polka_dots }.should raise_error "Unknown colour 'pink_with_polka_dots'"
     end
     
     it "should be able to go any rgb" do
@@ -582,6 +618,13 @@ describe Light do
       @driver.should_become :purple
       @driver.should_become :grey
       @driver.should_become :aqua
+    end
+    
+    it "should not wait for an effect to finish if a new one is provided" do
+      @light.go fade([100, 0, 0], [110, 0, 0], 10, 2)
+      @driver.should_become [101, 0, 0]
+      @light.go :red
+      @driver.should_become [255, 0, 0]
     end
   end
 end
