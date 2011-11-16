@@ -386,11 +386,4 @@ class Light
   def wakeup
     @run_thread.run if @run_thread
   end
-  
-  def do_in seconds, &to_do
-    sleep seconds if seconds > 0
-    Thread.new do
-      to_do.yield
-    end 
-  end
 end
