@@ -61,6 +61,20 @@ module CheekyDreams
       end
     end
   end
+  
+  def audit_to *auditors
+    CompositeAuditor.new auditors
+  end
+  
+  class CompositeAuditor
+    def initialize auditors
+      @auditors = auditors
+    end
+    
+    def audit type, message
+      @auditors.each { |auditor| auditor.audit type, message }
+    end
+  end
 
   def stdio_audit out = STDOUT, err = STDERR
     StdIOAuditor.new(out, err)
@@ -308,9 +322,8 @@ class Light
   include CheekyDreams
   
   def initialize driver
-    @driver, @freq, @auditor = driver, 100, CheekyDreams::Dev::Null.new
+    @driver, @freq, @auditor, @effect = driver, 50, dev_null, solid(:off)
     @lock = Mutex.new
-    @effect = CheekyDreams::Effects::Solid.new([0,0,0])
     @on = false
   end
   
@@ -332,35 +345,21 @@ class Light
   
   private
   def turn_on
-    @on = true
+    @on, current_effect = true, nil
     Thread.new do
-      current_effect = nil
-      last_colour = [0,0,0]
-      freq = nil
-      # next_colour_time = nil
+      last_colour = COLOURS[:off]
       while @on
         start = Time.now
-        @lock.synchronize {
-          # if @effect && current_effect != @effect
-            current_effect = @effect
-            # next_colour_time = Time.at(0)
-          # end
-        }
+        @lock.synchronize { current_effect = @effect }
         begin
-          # if current_effect
-            # if Time.now > next_colour_time
-              new_colour = current_effect.next last_colour
-              @driver.go new_colour
-              @auditor.audit :colour_change, new_colour.to_s
-              last_colour = new_colour
-              # next_colour_time = Time.now + (1 / current_effect.freq.to_f)
-            # end
-          # end
+          new_colour = current_effect.next last_colour
+          @driver.go new_colour
+          @auditor.audit :colour_change, new_colour.to_s
+          last_colour = new_colour
         rescue => e
           auditor.audit :error, e.message
         end
         sleep_until (start + (1 / current_effect.freq.to_f))
-        # sleep (1 / freq.to_f)
       end
     end
   end
