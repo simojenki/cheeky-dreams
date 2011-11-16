@@ -323,7 +323,7 @@ class Light
   
   def initialize driver
     @driver, @freq, @auditor, @effect = driver, 50, dev_null, solid(:off)
-    @lock = Mutex.new
+    @lock, @wake_up = Mutex.new, ConditionVariable.new
     @on = false
   end
   
@@ -339,6 +339,7 @@ class Light
         else
           raise "Im sorry dave, I'm afraid I can't do that. #{effect}"
       end
+      @wake_up.signal
     }
     turn_on unless @on    
   end
@@ -359,8 +360,16 @@ class Light
         rescue => e
           auditor.audit :error, e.message
         end
-        sleep_until (start + (1 / current_effect.freq.to_f))
+        do_in (1 / current_effect.freq.to_f) do
+          @lock.sychronize { @wake_up.signal }
+        end
+        @lock.sychronize { @wake_up.wait }
       end
     end
+  end
+  
+  def do_in seconds, &to_do
+    sleep seconds if seconds > 0
+    Thread.new to_do
   end
 end
