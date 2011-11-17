@@ -4,13 +4,13 @@ require 'rspec'
 require 'cheeky-dreams'
 
 require 'rainbow'
-
+# http://www.krazydad.com/makecolors.php
 include CheekyDreams
 
 light = Light.new ansi_driver
-light.auditor = stderr_auditor
+# light.auditor = stdio_audit
 light.go :purple
-light.crazy 10, 20
+light.go throb 10, [100,0,0], [255,0,0]
 
 sleep 100
 

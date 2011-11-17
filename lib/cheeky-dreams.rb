@@ -140,8 +140,8 @@ module CheekyDreams
     Effects::Func.new freq, &block
   end
 
-  def throb freq, amplitude, centre
-    Effects::Throb.new freq, amplitude, centre
+  def throb freq, from, to
+    Effects::Throb.new freq, from, to
   end
   
   def crazy freq = 1, new_effect_freq = 2
@@ -219,11 +219,12 @@ module CheekyDreams
         @r_centre, @r_amp = centre_and_amp from[0], to[0]
         @g_centre, @g_amp = centre_and_amp from[1], to[1]
         @b_centre, @b_amp = centre_and_amp from[2], to[2]
-        @count = 1
+        @sin_freq = 3.14 / freq.to_f
+        @count = (1.57 / @sin_freq).floor
       end
       
       def next current_colour
-        x = sin(freq * @count)
+        x = sin(@sin_freq * @count)
         r = x * r_amp + r_centre
         g = x * g_amp + g_centre
         b = x * b_amp + b_centre
@@ -232,7 +233,7 @@ module CheekyDreams
         # [v, 0, 0]
         
         @count += 1
-        [r, g, b]
+        [r.floor, g.floor, b.floor]
       end
       
       private 
