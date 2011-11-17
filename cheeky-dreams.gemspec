@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = "cheeky-dreams"
-  s.version = "0.0.5"
+  s.version = "0.0.6"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["simon"]
@@ -27,9 +27,9 @@ Gem::Specification.new do |s|
     "VERSION",
     "cheeky-dreams.gemspec",
     "lib/cheeky-dreams.rb",
+    "samples/fade-to-throb.rb",
     "spec/cheeky-dreams_spec.rb",
     "spec/off.rb",
-    "spec/small-test.rb",
     "spec/spec_helper.rb",
     "spec/support/collecting_auditor.rb",
     "spec/support/stub_driver.rb",
