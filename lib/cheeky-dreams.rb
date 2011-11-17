@@ -228,20 +228,17 @@ module CheekyDreams
     
     class LightShow < Effect
       def initialize effects
-        @effects, @current, @last_freq = effects, nil, nil
+        @effects, @current_effect = effects, nil
       end
       
       def next current_colour = nil
-        @current = @effects.delete_at(0) unless @current
-        colour, freq = @current.next current_colour
+        @current_effect = @effects.delete_at(0) unless @current_effect
+        colour, freq = @current_effect.next current_colour
         if (freq == 0 && !@effects.empty?)
-          @current = @effects.delete_at(0)
-        elsif (freq == 0 && @effects.empty?)
-          @last_freq = 0
-        else
-          @last_freq = freq
+          @current_effect = @effects.delete_at(0)
+          freq = 100
         end
-        [colour, @last_freq]
+        [colour, freq]
       end
     end
     

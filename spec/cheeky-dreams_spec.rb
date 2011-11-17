@@ -306,8 +306,8 @@ describe CheekyDreams do
       
       it 'should go through effects' do
         @light_show.next.should == [[1, 1, 1], 11]
-        @light_show.next.should == [[2, 2, 2], 11]
-        @light_show.next.should == [[3, 3, 3], 11]
+        @light_show.next.should == [[2, 2, 2], 100]
+        @light_show.next.should == [[3, 3, 3], 100]
         @light_show.next.should == [[4, 4, 4], 12]
         @light_show.next.should == [[5, 5, 5], 0]
       end
