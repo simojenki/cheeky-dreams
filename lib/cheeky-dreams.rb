@@ -374,7 +374,7 @@ class Light
   include CheekyDreams
   
   def initialize driver
-    @driver, @freq, @auditor, @effect = driver, 50, dev_null, solid(:off)
+    @driver, @auditor, @effect = driver, dev_null, solid(:off)
     @lock, @wake_up = Mutex.new, ConditionVariable.new
     @on = false
   end
