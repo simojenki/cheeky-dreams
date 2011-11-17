@@ -1,4 +1,5 @@
 require 'thread'
+require 'set'
 
 module CheekyDreams
   
@@ -47,13 +48,13 @@ module CheekyDreams
     end
   end
 
-  class FilteringAuditor
-    def initialize auditor, including
-      @auditor, @including = auditor, Set.new(including)
+  class ForwardingAuditor
+    def initialize rules
+      @rules = rules
     end
     
     def audit type, message
-      @auditor.audit(type, message) if @including.include?(type)
+      @rules[type].audit(type, message) if @rules.has_key?(type)
     end
   end
 
@@ -72,8 +73,28 @@ module CheekyDreams
     end
   end
   
-  def filtering including, auditor
-    FilteringAuditor.new auditor, including
+  AuditEvent = Struct.new(:type, :message)
+  
+  class SuppressDuplicatesAuditor
+    def initialize auditor
+      @auditor, @audits = auditor, Set.new
+    end
+    
+    def audit type, message
+      event = AuditEvent.new type, message
+      unless @audits.include?(event)
+        @auditor.audit(type, message)
+        @audits << event
+      end
+    end
+  end
+  
+  def suppress_duplicates auditor
+    SuppressDuplicatesAuditor.new auditor
+  end
+  
+  def forward rules
+    ForwardingAuditor.new rules
   end
   
   def audit_to *auditors
@@ -144,7 +165,7 @@ module CheekyDreams
     Effects::Throb.new freq, from, to
   end
   
-  def crazy freq = 1, new_effect_freq = 2
+  def crazy freq = 10, new_effect_freq = 20
   	Effects::Crazy.new(freq, new_effect_freq)
   end
    

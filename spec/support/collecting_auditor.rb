@@ -1,4 +1,3 @@
-AuditEvent = Struct.new(:type, :message)
 
 class CollectingAuditor
   
@@ -9,10 +8,10 @@ class CollectingAuditor
   end
   
   def audit type, message
-    @events << AuditEvent.new(type, message)
+    @events << CheekyDreams::AuditEvent.new(type, message)
   end
   
   def has_received? type, message
-    @events.include? AuditEvent.new(type, message)
+    @events.include? CheekyDreams::AuditEvent.new(type, message)
   end
 end

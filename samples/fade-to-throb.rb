@@ -5,9 +5,9 @@ require 'cheeky-dreams'
 include CheekyDreams
 
 light = Light.new ansi_driver
-light.auditor = forwarding(:error => suppress_duplicates(stdio_audit))
+light.auditor = forward(:error => suppress_duplicates(stdio_audit))
 light.go crazy
-sleep 2
+sleep 20
 light.go fade_to :red
 sleep 100
 

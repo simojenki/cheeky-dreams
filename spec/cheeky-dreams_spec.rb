@@ -322,20 +322,42 @@ describe CheekyDreams do
 end
 
 module CheekyDreams
-  describe FilteringAuditor do
+  describe SuppressDuplicatesAuditor do
     before :each do
       @delegate = mock('delegate auditor')
-      @auditor = FilteringAuditor.new @delegate, [:error]
+      @auditor = SuppressDuplicatesAuditor.new @delegate
     end
     
-    it 'should allow through audits of type :error' do
-      @delegate.should_receive(:audit).with(:error, 'here')
-      @auditor.audit :error, 'here'
+    it 'should not send duplicate messages through to delegate' do
+      @delegate.should_receive(:audit).with(:type1, 'message1')
+      @delegate.should_receive(:audit).with(:type2, 'message2')
+      @delegate.should_receive(:audit).with(:type3, 'message3')
+      @auditor.audit :type1, 'message1'
+      @auditor.audit :type2, 'message2'
+      @auditor.audit :type1, 'message1'
+      @auditor.audit :type3, 'message3'
+    end
+  end
+  
+  describe ForwardingAuditor do
+    before :each do
+      @errors, @blahs = mock('errors auditor'), mock('blahs auditor')
+      @auditor = ForwardingAuditor.new :error => @errors, :blah => @blahs
+    end
+    
+    it 'should forward audits of type :error' do
+      @errors.should_receive(:audit).with(:error, 'errors here')
+      @auditor.audit :error, 'errors here'
+    end
+    
+    it 'should forward audits of type :blah' do
+      @blahs.should_receive(:audit).with(:blah, 'blahs here')
+      @auditor.audit :blah, 'blahs here'
     end
     
     it 'should not allow through other random audits' do
-      @auditor.audit :error1, 'here'
-      @auditor.audit :error2, 'here'
+      @auditor.audit :error1, 'oh'
+      @auditor.audit :blah2, 'no'
     end
   end
   
@@ -478,7 +500,7 @@ describe Light do
     @driver = StubDriver.new
     @light = Light.new @driver
     @collecting_auditor = CollectingAuditor.new
-    @audit_errors = filtering([:error], stdio_audit)
+    @audit_errors = forward(:error => stdio_audit)
     @light.auditor = audit_to @audit_errors, @collecting_auditor
   end
   
