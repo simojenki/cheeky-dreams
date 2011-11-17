@@ -295,6 +295,23 @@ describe CheekyDreams do
         @throb.b_centre.should == 50
       end
     end
+    
+    describe CheekyDreams::Effects::LightShow do
+      before :each do
+        @effect1 = PreStuffedEffect.new([[1, 1, 1], 11], [[2, 2, 2], 0])
+        @effect2 = PreStuffedEffect.new([[3, 3, 3], 0])
+        @effect3 = PreStuffedEffect.new([[4, 4, 4], 12], [[5, 5, 5], 0])
+        @light_show = light_show @effect1, @effect2, @effect3
+      end
+      
+      it 'should go through effects' do
+        @light_show.next.should == [[1, 1, 1], 11]
+        @light_show.next.should == [[2, 2, 2], 11]
+        @light_show.next.should == [[3, 3, 3], 11]
+        @light_show.next.should == [[4, 4, 4], 12]
+        @light_show.next.should == [[5, 5, 5], 0]
+      end
+    end
   end
 end
 

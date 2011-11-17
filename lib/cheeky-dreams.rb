@@ -165,8 +165,21 @@ module CheekyDreams
     Effects::Throb.new freq, from, to
   end
   
-  def crazy freq = 10, new_effect_freq = 20
+  def throbbing colour, freq = 10
+    rgb_colour = rgb(colour)
+    Effects::Throb.new freq, rgb_colour, [max(rgb_colour[0] - 200, 0), max(rgb_colour[1] - 200, 0), max(rgb_colour[2] - 200, 0)]
+  end
+  
+  def max a, b
+    a > b ? a : b
+  end
+  
+  def crazy freq = 10, new_effect_freq = 10
   	Effects::Crazy.new(freq, new_effect_freq)
+  end
+  
+  def light_show *effects
+    Effects::LightShow.new effects
   end
    
   module Dev
@@ -213,6 +226,25 @@ module CheekyDreams
       include Math
     end
     
+    class LightShow < Effect
+      def initialize effects
+        @effects, @current, @last_freq = effects, nil, nil
+      end
+      
+      def next current_colour = nil
+        @current = @effects.delete_at(0) unless @current
+        colour, freq = @current.next current_colour
+        if (freq == 0 && !@effects.empty?)
+          @current = @effects.delete_at(0)
+        elsif (freq == 0 && @effects.empty?)
+          @last_freq = 0
+        else
+          @last_freq = freq
+        end
+        [colour, @last_freq]
+      end
+    end
+    
     class Throb2 < Effect      
       def initialize freq, amplitude, centre
         @freq, @amplitude, @centre, @count = freq, amplitude, centre, 1
@@ -256,24 +288,20 @@ module CheekyDreams
         centre = max(from, to) - amp
         [centre, amp]
       end
-      
-      def max a, b
-        a > b ? a : b
-      end
     end
 
     class Crazy < Effect 
 			def initialize freq, new_effect_freq
 				@freq, @new_effect_freq = freq, new_effect_freq
-        @count, @effect = 0, nil
+        @count, @fade = 0, nil
 			end
 
 			def next current_colour
 				if @count % @new_effect_freq == 0
-					@effect = FadeTo.new([rand(255), rand(255), rand(255)], @new_effect_freq, freq)
+					@fade = FadeTo.new([rand(255), rand(255), rand(255)], @new_effect_freq, @freq)
 			  end
 				@count += 1
-				[@effect.next(current_colour), @freq]
+				[@fade.next(current_colour)[0], @freq]
 			end
     end
     
@@ -386,7 +414,7 @@ class Light
           @auditor.audit :colour_change, new_colour.to_s
           last_colour = new_colour
         rescue => e
-          auditor.audit :error, e.message
+          auditor.audit :error, "#{e.message}"
         end
         if freq > 0
           sleep_until (start + (1 / freq.to_f))
