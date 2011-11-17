@@ -1,14 +1,14 @@
 
 class StubEffect < CheekyDreams::Effects::Effect
   
-  attr_reader :freq, :asked_for_colour_count
+  attr_reader :asked_for_colour_count
   
-  def initialize freq, &block
-    @freq, @asked_for_colour_count = freq, 0
+  def initialize &block
+    @asked_for_colour_count = 0
     if block
       @block = block
     else
-      @block = proc { [0,0,0] }
+      @block = proc { [[0,0,0], 1] }
     end
   end
   

@@ -157,8 +157,8 @@ module CheekyDreams
     Effects::FadeTo.new to, steps, freq
   end
 
-  def func freq = 1, &block
-    Effects::Func.new freq, &block
+  def func &block
+    Effects::Func.new &block
   end
 
   def throb freq, from, to
@@ -211,24 +211,17 @@ module CheekyDreams
     class Effect
       include CheekyDreams    
       include Math
-      
-      attr_reader :freq
-      
-      def initialize freq
-        @freq = freq
-      end
     end
     
     class Throb2 < Effect      
       def initialize freq, amplitude, centre
-        super freq
-        @amplitude, @centre, @count = amplitude, centre, 1
+        @freq, @amplitude, @centre, @count = freq, amplitude, centre, 1
       end
       
       def next current_colour
-        x = freq * (@count += 1)
+        x = @freq * (@count += 1)
         v = sin(x) * @amplitude + @centre
-        [v, 0, 0]
+        [[v, 0, 0], @freq]
       end
     end
 
@@ -236,7 +229,7 @@ module CheekyDreams
       attr_reader :r_amp, :r_centre, :g_amp, :g_centre, :b_amp, :b_centre
             
       def initialize freq, from, to
-        super freq
+        @freq = freq
         @r_centre, @r_amp = centre_and_amp from[0], to[0]
         @g_centre, @g_amp = centre_and_amp from[1], to[1]
         @b_centre, @b_amp = centre_and_amp from[2], to[2]
@@ -254,7 +247,7 @@ module CheekyDreams
         # [v, 0, 0]
         
         @count += 1
-        [r.floor, g.floor, b.floor]
+        [[r.floor, g.floor, b.floor], @freq]
       end
       
       private 
@@ -271,8 +264,7 @@ module CheekyDreams
 
     class Crazy < Effect 
 			def initialize freq, new_effect_freq
-				super freq
-				@new_effect_freq = new_effect_freq
+				@freq, @new_effect_freq = freq, new_effect_freq
         @count, @effect = 0, nil
 			end
 
@@ -281,47 +273,44 @@ module CheekyDreams
 					@effect = FadeTo.new([rand(255), rand(255), rand(255)], @new_effect_freq, freq)
 			  end
 				@count += 1
-				@effect.next current_colour
+				[@effect.next(current_colour), @freq]
 			end
     end
     
     class Func < Effect
-      def initialize freq, &block
-        super freq
+      def initialize &block
         @block = block
       end
       
       def next current_colour = nil
-        rgb(@block.yield(current_colour))
+        colour, freq = @block.yield(current_colour)
+        [rgb(colour), freq]
       end
     end
     
     class Solid < Effect
       def initialize colour
-        super 0.1
         @rgb = rgb(colour)
       end
       
       def next current_colour = nil
-        @rgb
+        [@rgb, 0]
       end
     end
     
     class Cycle < Effect
       def initialize colours, freq
-        super freq
-        @cycle = colours.cycle
+        @freq, @cycle = freq, colours.cycle
       end
       
       def next current_colour = nil
-        rgb(@cycle.next)
+        [rgb(@cycle.next), @freq]
       end
     end
     
     class Fade < Effect
       def initialize from, to, steps, freq
-        super freq
-        @rgb_from, @rgb_to = rgb(from), rgb(to)
+        @freq, @rgb_from, @rgb_to = freq, rgb(from), rgb(to)
         @fade = [@rgb_from]
         (1..(steps-1)).each { |i| @fade << rgb_between(@rgb_from, @rgb_to, i / steps.to_f) }
         @fade << @rgb_to
@@ -329,23 +318,22 @@ module CheekyDreams
       end
       
       def next current_colour = nil
-        return @rgb_to if @index >= @fade.length
+        return [@rgb_to, 0] if @index >= @fade.length
         next_colour = @fade[@index]
         @index += 1
-        next_colour
+        [next_colour, next_colour == @rgb_to ? 0 : @freq]
       end
     end
     
     class FadeTo < Effect
       def initialize to, steps, freq
-        super freq
-        @to, @steps = to, steps
+        @freq, @to, @steps = freq, to, steps
         @fade = nil
       end
       
       def next current_colour
-        @fade = Fade.new(current_colour, @to, @steps, freq) unless @fade        
-        @fade.next current_colour
+        @fade = Fade.new(current_colour, @to, @steps, @freq) unless @fade        
+        @fade.next(current_colour)
       end
     end
   end
@@ -386,21 +374,25 @@ class Light
   
   private
   def turn_on
-    @on, current_effect = true, nil
+    @on = true
     @run_thread = Thread.new do
-      last_colour = COLOURS[:off]
+      last_colour, current_effect, freq = COLOURS[:off], nil, nil
       while @on
         start = Time.now
         @lock.synchronize { current_effect = @effect }
         begin
-          new_colour = current_effect.next last_colour
+          new_colour, freq = current_effect.next last_colour
           @driver.go new_colour
           @auditor.audit :colour_change, new_colour.to_s
           last_colour = new_colour
         rescue => e
           auditor.audit :error, e.message
         end
-        sleep_until (start + (1 / current_effect.freq.to_f))
+        if freq > 0
+          sleep_until (start + (1 / freq.to_f))
+        else
+          sleep
+        end
       end      
     end
   end

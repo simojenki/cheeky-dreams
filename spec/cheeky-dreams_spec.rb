@@ -117,9 +117,9 @@ describe CheekyDreams do
       end
 
       it "should return [0,0,0] every time called" do
-        @off.next.should == COLOURS[:off]
-        @off.next.should == COLOURS[:off]
-        @off.next.should == COLOURS[:off]
+        @off.next.should == [COLOURS[:off], 0]
+        @off.next.should == [COLOURS[:off], 0]
+        @off.next.should == [COLOURS[:off], 0]
       end
     end
 
@@ -130,9 +130,9 @@ describe CheekyDreams do
         end
 
         it "should return rgb every time called" do
-          @solid.next.should == COLOURS[:purple]
-          @solid.next.should == COLOURS[:purple]
-          @solid.next.should == COLOURS[:purple]
+          @solid.next.should == [COLOURS[:purple], 0]
+          @solid.next.should == [COLOURS[:purple], 0]
+          @solid.next.should == [COLOURS[:purple], 0]
         end
       end
 
@@ -142,9 +142,9 @@ describe CheekyDreams do
         end
 
         it "should return rgb every time called" do
-          @solid.next.should == [123, 123, 123]
-          @solid.next.should == [123, 123, 123]
-          @solid.next.should == [123, 123, 123]
+          @solid.next.should == [[123, 123, 123], 0]
+          @solid.next.should == [[123, 123, 123], 0]
+          @solid.next.should == [[123, 123, 123], 0]
         end
       end
     end
@@ -154,22 +154,18 @@ describe CheekyDreams do
         @cycle = cycle [:red, :blue, [211, 192, 101]], 22
       end
 
-      it "should have a frequency" do
-        @cycle.freq.should == 22
-      end
-
       it "should cycle through the colours as rgb" do
-        @cycle.next.should == [255,   0,   0]
-        @cycle.next.should == [  0,   0, 255]
-        @cycle.next.should == [211, 192, 101]
+        @cycle.next.should == [[255,   0,   0], 22]
+        @cycle.next.should == [[  0,   0, 255], 22]
+        @cycle.next.should == [[211, 192, 101], 22]
 
-        @cycle.next.should == [255,   0,   0]
-        @cycle.next.should == [  0,   0, 255]
-        @cycle.next.should == [211, 192, 101]
+        @cycle.next.should == [[255,   0,   0], 22]
+        @cycle.next.should == [[  0,   0, 255], 22]
+        @cycle.next.should == [[211, 192, 101], 22]
 
-        @cycle.next.should == [255,   0,   0]
-        @cycle.next.should == [  0,   0, 255]
-        @cycle.next.should == [211, 192, 101]
+        @cycle.next.should == [[255,   0,   0], 22]
+        @cycle.next.should == [[  0,   0, 255], 22]
+        @cycle.next.should == [[211, 192, 101], 22]
       end
     end
 
@@ -179,15 +175,11 @@ describe CheekyDreams do
           @fade = fade :blue, :green, 1, 5
         end
 
-        it "should have a freq of 2" do
-          @fade.freq.should == 5
-        end
-
-        it "should be able to provide the steps when asked" do
-          @fade.next.should == [  0,   0, 255]
-          @fade.next.should == [  0, 255,   0]
-          @fade.next.should == [  0, 255,   0]
-          @fade.next.should == [  0, 255,   0]
+        it "should be able to fade to green and then have no frequency" do
+          @fade.next.should == [[  0,   0, 255], 5]
+          @fade.next.should == [[  0, 255,   0], 0]
+          @fade.next.should == [[  0, 255,   0], 0]
+          @fade.next.should == [[  0, 255,   0], 0]
         end
       end
 
@@ -196,25 +188,21 @@ describe CheekyDreams do
           @fade = fade [100, 100, 100], [110, 90, 0], 10, 2
         end
 
-        it "should have a freq of 2" do
-          @fade.freq.should == 2
-        end
-
-        it "should be able to provide the steps when asked" do
-          @fade.next.should == [100, 100, 100]
-          @fade.next.should == [101,  99,  90]
-          @fade.next.should == [102,  98,  80]
-          @fade.next.should == [103,  97,  70]
-          @fade.next.should == [104,  96,  60]
-          @fade.next.should == [105,  95,  50]
-          @fade.next.should == [106,  94,  40]
-          @fade.next.should == [107,  93,  30]
-          @fade.next.should == [108,  92,  20]
-          @fade.next.should == [109,  91,  10]
-          @fade.next.should == [110,  90,   0]
+        it "should be able to fade to 110,90,0 and then have no frequency" do
+          @fade.next.should == [[100, 100, 100], 2]
+          @fade.next.should == [[101,  99,  90], 2]
+          @fade.next.should == [[102,  98,  80], 2]
+          @fade.next.should == [[103,  97,  70], 2]
+          @fade.next.should == [[104,  96,  60], 2]
+          @fade.next.should == [[105,  95,  50], 2]
+          @fade.next.should == [[106,  94,  40], 2]
+          @fade.next.should == [[107,  93,  30], 2]
+          @fade.next.should == [[108,  92,  20], 2]
+          @fade.next.should == [[109,  91,  10], 2]
+          @fade.next.should == [[110,  90,   0], 0]
           # and then continue to provide the same colour
-          @fade.next.should == [110,  90,   0]
-          @fade.next.should == [110,  90,   0]
+          @fade.next.should == [[110,  90,   0], 0]
+          @fade.next.should == [[110,  90,   0], 0]
         end  
       end
     end
@@ -225,23 +213,20 @@ describe CheekyDreams do
           @fade_to = fade_to :green, 11, 2
         end
 
-        it "should have a freq of 2" do
-          @fade_to.freq.should == 2
-        end
-
-        it "should be able to gradually go to colour when asked" do
-          @fade_to.next([0, 145, 0]).should == [0, 145, 0]
-          @fade_to.next([0, 155, 0]).should == [0, 155, 0]
-          @fade_to.next([0, 165, 0]).should == [0, 165, 0]
-          @fade_to.next([0, 165, 0]).should == [0, 175, 0]
-          @fade_to.next([0, 175, 0]).should == [0, 185, 0]
-          @fade_to.next([0, 185, 0]).should == [0, 195, 0]
-          @fade_to.next([0, 195, 0]).should == [0, 205, 0]
-          @fade_to.next([0, 205, 0]).should == [0, 215, 0]
-          @fade_to.next([0, 215, 0]).should == [0, 225, 0]
-          @fade_to.next([0, 225, 0]).should == [0, 235, 0]
-          @fade_to.next([0, 235, 0]).should == [0, 245, 0]
-          @fade_to.next([0, 245, 0]).should == [0, 255, 0]
+        it "should be able to fade to :green and then have no frequency" do
+          @fade_to.next([0, 145, 0]).should == [[0, 145, 0], 2]
+          @fade_to.next([0, 155, 0]).should == [[0, 155, 0], 2]
+          @fade_to.next([0, 165, 0]).should == [[0, 165, 0], 2]
+          @fade_to.next([0, 165, 0]).should == [[0, 175, 0], 2]
+          @fade_to.next([0, 175, 0]).should == [[0, 185, 0], 2]
+          @fade_to.next([0, 185, 0]).should == [[0, 195, 0], 2]
+          @fade_to.next([0, 195, 0]).should == [[0, 205, 0], 2]
+          @fade_to.next([0, 205, 0]).should == [[0, 215, 0], 2]
+          @fade_to.next([0, 215, 0]).should == [[0, 225, 0], 2]
+          @fade_to.next([0, 225, 0]).should == [[0, 235, 0], 2]
+          @fade_to.next([0, 235, 0]).should == [[0, 245, 0], 2]
+          @fade_to.next([0, 245, 0]).should == [[0, 255, 0], 0]
+          @fade_to.next([0, 255, 0]).should == [[0, 255, 0], 0]
         end
       end
 
@@ -250,15 +235,11 @@ describe CheekyDreams do
           @fade_to = fade_to [130, 80, 170], 3, 20
         end
 
-        it "should have a freq of 20" do
-          @fade_to.freq.should == 20
-        end
-
         it "should be able to gradually go to colour when asked" do
-          @fade_to.next([190, 77, 140]).should == [190, 77, 140]
-          @fade_to.next([190, 77, 140]).should == [170, 78, 150]
-          @fade_to.next([170, 78, 150]).should == [150, 79, 160]
-          @fade_to.next([150, 79, 160]).should == [130, 80, 170]
+          @fade_to.next([190, 77, 140]).should == [[190, 77, 140], 20]
+          @fade_to.next([190, 77, 140]).should == [[170, 78, 150], 20]
+          @fade_to.next([170, 78, 150]).should == [[150, 79, 160], 20]
+          @fade_to.next([150, 79, 160]).should == [[130, 80, 170], 0]
         end
       end
     end
@@ -266,25 +247,21 @@ describe CheekyDreams do
     describe CheekyDreams::Effects::Func do
       describe "when the block return rgb values" do
         before :each do
-          @func = func(22) { |current_colour| [current_colour[0] + 1, current_colour[1] + 1, current_colour[2] + 1] }
-        end
-
-        it "should have a freq of 22" do
-          @func.freq.should == 22
+          @func = func { |current_colour| [[current_colour[0] + 1, current_colour[1] + 1, current_colour[2] + 1], 191] }
         end
 
         it "should return the given rgb plus 1 to each of r, g, and b" do
-          @func.next([2, 5, 6]).should == [3, 6, 7]
+          @func.next([2, 5, 6]).should == [[3, 6, 7], 191]
         end
       end
 
-      describe "when the block return symbol" do
+      describe "when the block returns symbol" do
         before :each do
-          @func = func(22) { |current_colour| :purple }
+          @func = func { |current_colour| [:purple, 246] }
         end
 
         it "should return the rgb for the symbol" do
-          @func.next([2, 5, 6]).should == COLOURS[:purple]
+          @func.next([2, 5, 6]).should == [COLOURS[:purple], 246]
         end
       end
     end
@@ -512,7 +489,7 @@ describe Light do
     before :each do
       @error_message = "On purpose error"
       @error = RuntimeError.new @error_message
-      @effect = StubEffect.new(20) { raise @error }
+      @effect = StubEffect.new { raise @error }
       @light.auditor = @collecting_auditor
     end
     
@@ -525,7 +502,7 @@ describe Light do
   describe "frequency of effect" do    
     describe 'when frequency is 1' do
       before :each do      
-        @effect = StubEffect.new 1
+        @effect = StubEffect.new { [[0, 0, 0], 1] }
       end
       
       it 'should call the effect almost immediately, and then about 1 second later' do
@@ -539,7 +516,7 @@ describe Light do
     
     describe 'when frequency is 10' do
       before :each do      
-        @effect = StubEffect.new 10
+        @effect = StubEffect.new { [[0,0,0], 10] }
       end
       
       it 'should call the effect between 9 and 11 times in the next second' do
@@ -553,7 +530,7 @@ describe Light do
     
     describe 'when frequency is 5' do
       before :each do      
-        @effect = StubEffect.new 5
+        @effect = StubEffect.new { [[0, 0, 0], 5] }
       end
       
       it 'should call the effect 5 times in the next second' do
@@ -644,7 +621,7 @@ describe Light do
     
     it "should be able to go different colours based on a function" do
       cycle = [:blue, :red, :green, :purple, :grey, :aqua].cycle
-      @light.go func(10) { cycle.next }
+      @light.go func { [cycle.next, 10] }
       @driver.should_become :blue
       @driver.should_become :red
       @driver.should_become :green
