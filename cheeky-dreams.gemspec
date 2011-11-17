@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "cheeky-dreams"
-  s.version = "0.0.4"
+  s.version = "0.0.5"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["simon"]
-  s.date = "2011-11-02"
+  s.date = "2011-11-17"
   s.description = "For controlling dream cheeky usb light"
   s.email = "simojenki@gmail.com"
   s.extra_rdoc_files = [
@@ -28,6 +28,8 @@ Gem::Specification.new do |s|
     "cheeky-dreams.gemspec",
     "lib/cheeky-dreams.rb",
     "spec/cheeky-dreams_spec.rb",
+    "spec/off.rb",
+    "spec/small-test.rb",
     "spec/spec_helper.rb",
     "spec/support/collecting_auditor.rb",
     "spec/support/stub_driver.rb",
