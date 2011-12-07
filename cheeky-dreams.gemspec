@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = "cheeky-dreams"
-  s.version = "0.0.7"
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["simon"]
-  s.date = "2011-11-17"
+  s.date = "2011-12-07"
   s.description = "For controlling dream cheeky usb light"
   s.email = "simojenki@gmail.com"
   s.extra_rdoc_files = [
