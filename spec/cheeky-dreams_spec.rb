@@ -24,10 +24,28 @@ describe CheekyDreams do
   end
   
   describe "find_dream_cheeky_usb_device" do
-    it "should locate the rgb files and return the driver" do
-      Dir.should_receive(:glob).with('/sys/devices/**/red').and_return(["/sys/devices/some-crazy-pci-bus-stuff/red"])
-      driver = find_dream_cheeky_usb_device
-      driver.path.should == "/sys/devices/some-crazy-pci-bus-stuff"
+    describe "when there is only one" do
+      before :each do
+        Dir.should_receive(:glob).with('/sys/devices/**/red').and_return(["/sys/devices/some-crazy-pci-bus-stuff/red"])
+      end
+      
+      it "should locate the rgb files and return the driver" do
+        driver = find_dream_cheeky_usb_device
+        driver.path.should == "/sys/devices/some-crazy-pci-bus-stuff"
+      end
+    end
+    
+    describe "when there are more than 1" do
+      before :each do
+        Dir.should_receive(:glob).with('/sys/devices/**/red').and_return(["/sys/devices/a/red", "/sys/devices/b/red", "/sys/devices/c/red"])
+      end
+      
+      it "should locate the rgb files and return the driver" do
+        drivers = find_dream_cheeky_usb_device
+        drivers[0].path.should == "/sys/devices/a"
+        drivers[1].path.should == "/sys/devices/b"
+        drivers[2].path.should == "/sys/devices/c"
+      end
     end
   end
   

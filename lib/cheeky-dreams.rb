@@ -134,7 +134,15 @@ module CheekyDreams
   end
   
   def find_dream_cheeky_usb_device
-    Dev::DreamCheeky.new(File.dirname(Dir.glob('/sys/devices/**/red').first))
+    reds = Dir.glob('/sys/devices/**/red')
+    case reds.length
+      when 0
+        raise "Failed to find any dream cheeky devices"
+      when 1
+        Dev::DreamCheeky.new(File.dirname(reds.first))
+      else
+        reds.collect {|red| Dev::DreamCheeky.new(File.dirname(red)) }
+    end
   end
 
   def off
